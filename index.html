@@ -1,0 +1,1430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#1a73e8">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Tomas Gym">
+<link rel="apple-touch-icon" id="app-icon-link" href="">
+<link rel="manifest" id="app-manifest" href="">
+<script>
+(function(){
+  const sz=192;
+  const cv=document.createElement('canvas');
+  cv.width=sz;cv.height=sz;
+  const ctx=cv.getContext('2d');
+  const r=36;
+  ctx.beginPath();
+  ctx.moveTo(r,0);ctx.lineTo(sz-r,0);ctx.quadraticCurveTo(sz,0,sz,r);
+  ctx.lineTo(sz,sz-r);ctx.quadraticCurveTo(sz,sz,sz-r,sz);
+  ctx.lineTo(r,sz);ctx.quadraticCurveTo(0,sz,0,sz-r);
+  ctx.lineTo(0,r);ctx.quadraticCurveTo(0,0,r,0);
+  ctx.closePath();
+  const grad=ctx.createLinearGradient(0,0,sz,sz);
+  grad.addColorStop(0,'#1a73e8');
+  grad.addColorStop(1,'#0d47a1');
+  ctx.fillStyle=grad;
+  ctx.fill();
+  ctx.font=`${sz*0.58}px serif`;
+  ctx.textAlign='center';
+  ctx.textBaseline='middle';
+  ctx.fillText('💪',sz/2,sz/2+sz*0.04);
+  const png=cv.toDataURL('image/png');
+  document.getElementById('app-icon-link').href=png;
+  const manifest={name:'Tomas Gym Program',short_name:'Tomas Gym',start_url:'.',display:'standalone',background_color:'#1a1a2e',theme_color:'#1a73e8',icons:[{src:png,sizes:'192x192',type:'image/png'},{src:png,sizes:'512x512',type:'image/png'}]};
+  const mblob=new Blob([JSON.stringify(manifest)],{type:'application/manifest+json'});
+  document.getElementById('app-manifest').href=URL.createObjectURL(mblob);
+})();
+</script>
+<title>Tomas Gym Program</title>
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --page:#f1f3f4;--white:#fff;--border:#e8eaed;
+  --blue:#1a73e8;--red:#ea4335;--green:#34a853;--yellow:#f9ab00;--purple:#7b1fa2;
+  --t1:#202124;--t2:#5f6368;--t3:#9aa0a6;
+  --sh:0 1px 2px rgba(60,64,67,.3),0 1px 3px 1px rgba(60,64,67,.15);
+  --sh2:0 1px 3px rgba(60,64,67,.3),0 4px 8px 3px rgba(60,64,67,.15);
+}
+body{background:var(--page);color:var(--t1);font-family:"Google Sans",Roboto,-apple-system,system-ui,sans-serif;font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+
+/* HEADER */
+.hdr{background:var(--white);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;box-shadow:0 1px 2px rgba(60,64,67,.15)}
+.hdr-top{display:flex;align-items:center;gap:12px;padding:0 20px;height:58px}
+.logo{display:flex;align-items:center;gap:10px}
+.dots{display:flex;gap:3px}
+.dot{width:9px;height:9px;border-radius:50%}
+.d1{background:#4285f4}.d2{background:#ea4335}.d3{background:#fbbc04}.d4{background:#34a853}
+.logo-txt{font-size:17px;font-weight:500;color:var(--t1)}
+.hdr-sub{font-size:12px;color:var(--t3);white-space:nowrap}
+#auth-btn-wrap{margin-left:auto;display:flex;align-items:center;gap:8px;flex-shrink:0}
+.auth-chip{display:flex;align-items:center;gap:6px;background:var(--page);border:1px solid var(--border);border-radius:20px;padding:4px 12px 4px 6px;font-size:12px;color:var(--t2);cursor:pointer;transition:background .15s}
+.auth-chip:hover{background:var(--border)}
+.auth-chip img{width:22px;height:22px;border-radius:50%}
+.auth-chip-dot{width:8px;height:8px;border-radius:50%;background:var(--green)}
+.btn-google{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--border);border-radius:6px;padding:10px 18px;font-size:14px;font-weight:500;color:var(--t1);cursor:pointer;box-shadow:var(--sh);transition:box-shadow .15s}
+.btn-google:hover{box-shadow:var(--sh2)}
+.tabs{display:flex;overflow-x:auto;padding:0 20px;border-top:1px solid var(--border)}
+.tabs::-webkit-scrollbar{display:none}
+.tab{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:0 11px;height:52px;font-size:12px;font-weight:500;color:var(--t2);cursor:pointer;white-space:nowrap;border-bottom:3px solid transparent;transition:color .15s;user-select:none;border-radius:4px 4px 0 0}
+.tab:hover{color:var(--blue);background:#f0f4ff}
+.tab.on{color:var(--blue);border-bottom-color:var(--blue)}
+.tab-ck{background:var(--green);color:#fff;border-radius:10px;padding:0 6px;font-size:10px;font-weight:700;line-height:18px}
+.tab-dayn{font-size:9px;font-weight:500;color:var(--t3);letter-spacing:.04em;text-transform:uppercase;line-height:1}
+.tab.on .tab-dayn{color:var(--blue);opacity:.7}
+.tab-name{font-size:11px;font-weight:600;line-height:1.2;text-align:center}
+.tab-div{width:1px;background:var(--border);height:28px;align-self:center;flex-shrink:0;margin:0 2px}
+.tab-util{font-size:11px;font-weight:500;height:52px;flex-direction:row;gap:4px}
+.sec-jumps{display:flex;flex-wrap:wrap;gap:6px;padding-bottom:16px;align-items:center}
+.sec-jump{background:var(--white);border:1px solid var(--border);border-radius:16px;padding:5px 13px;font-size:11px;font-weight:500;color:var(--t2);cursor:pointer;box-shadow:0 1px 2px rgba(60,64,67,.1);transition:all .15s;white-space:nowrap}
+.sec-jump:hover{border-color:var(--blue);color:var(--blue);background:#f0f4ff}
+
+/* PAGE */
+.page{display:none;max-width:1020px;margin:0 auto;padding:22px 20px 60px}
+.page.on{display:block}
+
+/* CYCLE BANNER */
+.cycle-banner{display:none;background:linear-gradient(120deg,#34a853,#1a73e8);color:#fff;border-radius:8px;padding:20px 24px;margin-bottom:20px}
+.cycle-banner.on{display:block}
+.cycle-banner h3{font-size:17px;font-weight:500}
+.cycle-banner p{font-size:13px;opacity:.8;margin-top:4px}
+.cycle-banner button{margin-top:12px;background:#fff;color:var(--blue);border:none;border-radius:4px;padding:8px 18px;font-size:13px;font-weight:500;cursor:pointer}
+
+/* DAY HEADER */
+.day-hdr{background:var(--white);border-radius:8px;box-shadow:var(--sh);padding:18px 20px;margin-bottom:20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.day-icon{font-size:2rem;flex-shrink:0}
+.day-info{flex:1;min-width:160px}
+.day-info h2{font-size:17px;font-weight:400}
+.day-info p{font-size:12px;color:var(--t2);margin-top:2px}
+.day-badges{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+.tbadge{font-size:11px;font-weight:500;border-radius:10px;padding:3px 10px}
+.tbadge-k{background:#e8f0fe;color:#1a73e8}.tbadge-s{background:#fce8e6;color:#c5221f}
+.tbadge-t{background:#e6f4ea;color:#188038}.tbadge-x{background:#fef7e0;color:#b06000}
+.done-btn{background:var(--green);color:#fff;border:none;border-radius:4px;padding:10px 18px;font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap;flex-shrink:0}
+.done-btn:hover{background:#188038}
+.done-btn.completed{background:var(--border);color:var(--t3);cursor:default}
+.done-btn.completed:hover{background:var(--border)}
+.done-date{font-size:11px;color:var(--t3);margin-top:4px}
+
+/* SECTION */
+.sec-head{display:flex;align-items:center;gap:8px;margin:22px 0 12px}
+.sec-title{font-size:13px;font-weight:500}
+.sec-cnt{font-size:10px;color:var(--t3);background:var(--border);border-radius:10px;padding:2px 8px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(265px,1fr));gap:14px}
+
+/* CARD */
+.card{background:var(--white);border-radius:8px;box-shadow:var(--sh);overflow:hidden;display:flex;flex-direction:column;transition:box-shadow .2s}
+.card:hover{box-shadow:var(--sh2)}
+.card-stripe{height:3px}
+.stripe-k{background:var(--blue)}.stripe-s{background:var(--red)}
+.stripe-t{background:var(--green)}.stripe-x{background:var(--yellow)}
+
+/* ─── VIDEO AREA ─────────────────────────────────── */
+.vid-area{width:100%;height:190px;background:#1a1a2e;position:relative;overflow:hidden;flex-shrink:0}
+
+/* Thumbnail (shown when video ID is set) */
+.vid-thumb{position:absolute;inset:0;cursor:pointer;display:none}
+.vid-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.vid-thumb-overlay{position:absolute;inset:0;background:rgba(0,0,0,.3);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;opacity:.85;transition:opacity .2s}
+.vid-thumb:hover .vid-thumb-overlay{opacity:1}
+.vid-thumb-overlay .yt-lbl{color:#fff;font-size:11px;font-weight:500;letter-spacing:.3px;text-shadow:0 1px 3px rgba(0,0,0,.6)}
+.yt-play-lrg{width:56px;height:56px;background:rgba(255,0,0,.92);border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 12px rgba(0,0,0,.5)}
+.yt-play-lrg::after{content:'';border-left:20px solid #fff;border-top:12px solid transparent;border-bottom:12px solid transparent;margin-left:5px}
+
+/* Placeholder (no video set yet) */
+.vid-ph{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px}
+.vid-ph-emoji{font-size:2.4rem;opacity:.35}
+.vid-ph-hint{font-size:11px;color:rgba(255,255,255,.3);text-align:center;padding:0 16px}
+.set-vid-btn{background:rgba(255,255,255,.12);color:rgba(255,255,255,.85);border:1px solid rgba(255,255,255,.2);border-radius:4px;padding:7px 16px;font-size:12px;font-weight:500;cursor:pointer;transition:background .15s}
+.set-vid-btn:hover{background:rgba(255,255,255,.22)}
+
+/* Set-video inline panel */
+.svp{position:absolute;inset:0;background:rgba(20,20,35,.95);display:none;flex-direction:column;align-items:center;justify-content:center;padding:16px;gap:10px}
+.svp.on{display:flex}
+.svp label{font-size:12px;color:rgba(255,255,255,.7);align-self:flex-start}
+.svp input{width:100%;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.3);border-radius:4px;padding:8px 10px;color:#fff;font-size:13px;outline:none}
+.svp input:focus{border-color:rgba(26,115,232,.9)}
+.svp-btns{display:flex;gap:8px;width:100%}
+.svp-set{flex:1;background:var(--blue);color:#fff;border:none;border-radius:4px;padding:8px;font-size:13px;font-weight:500;cursor:pointer}
+.svp-cancel{background:rgba(255,255,255,.1);color:rgba(255,255,255,.7);border:none;border-radius:4px;padding:8px 14px;font-size:13px;cursor:pointer}
+
+/* Always-visible overlay buttons */
+.vid-btns{position:absolute;top:7px;right:7px;display:flex;gap:5px;z-index:10}
+.vbtn{font-size:10px;color:rgba(255,255,255,.8);background:rgba(0,0,0,.55);border:none;border-radius:3px;padding:3px 8px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center}
+.vbtn:hover{background:rgba(26,115,232,.8);color:#fff}
+.vbtn.red:hover{background:rgba(234,67,53,.8)}
+.change-vid{position:absolute;bottom:7px;left:7px;z-index:10}
+
+/* Inline video iframe */
+.vid-iframe-wrap{position:absolute;inset:0;z-index:20;background:#000;display:none}
+.vid-iframe-wrap.on{display:block}
+.vid-iframe-wrap iframe{width:100%;height:100%;border:none;display:block}
+.vid-close{position:absolute;top:6px;right:6px;z-index:21;background:rgba(0,0,0,.7);color:#fff;border:none;border-radius:50%;width:26px;height:26px;font-size:14px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center}
+
+/* CARD BODY */
+.cbody{padding:13px;flex:1;display:flex;flex-direction:column;gap:9px}
+.card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.ex-name{font-size:14px;font-weight:500;line-height:1.3;flex:1}
+.type-pill{font-size:10px;font-weight:600;border-radius:10px;padding:2px 8px;white-space:nowrap;flex-shrink:0}
+.pill-k{background:#e8f0fe;color:#1a73e8}.pill-s{background:#fce8e6;color:#c5221f}
+.pill-t{background:#e6f4ea;color:#188038}.pill-x{background:#fef7e0;color:#b06000}
+
+/* MUSCLE CHIPS */
+.muscles{display:flex;flex-wrap:wrap;gap:4px}
+.mc{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:500;border-radius:10px;padding:2px 8px;border:1px solid}
+.mc.sec{opacity:.6}
+.mc-num{font-size:9px;font-weight:700}
+
+/* META */
+.ex-meta{display:flex;gap:14px}
+.mitem{display:flex;flex-direction:column;gap:1px}
+.mk{font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:var(--t3)}
+.mv{font-size:13px;font-weight:600}
+
+/* TIP */
+.tip{font-size:12px;color:var(--t2);line-height:1.6;background:#fafbff;border:1px solid #e4eaf9;border-radius:6px;padding:9px 11px}
+
+/* WEIGHT TRACKER */
+.wt-wrap{border-top:1px solid var(--border);padding-top:10px;margin-top:2px}
+.wt-lbl{font-size:10px;font-weight:500;color:var(--t2);margin-bottom:6px}
+.wt-row{display:flex;gap:6px;align-items:center}
+.wt-in{flex:1;min-width:0;border:1px solid var(--border);border-radius:4px;padding:7px 10px;font-size:14px;font-weight:500;color:var(--t1);outline:none}
+.wt-in:focus{border-color:var(--blue);box-shadow:0 0 0 2px rgba(26,115,232,.15)}
+.wt-unit{font-size:12px;color:var(--t3)}
+.wt-save{background:var(--blue);color:#fff;border:none;border-radius:4px;padding:7px 14px;font-size:12px;font-weight:500;cursor:pointer}
+.wt-save:hover{background:#1557b0}
+.wt-save.ok{background:var(--green)}
+.best-row{font-size:12px;color:var(--t2);margin-top:6px;min-height:15px}
+.best-row b{color:var(--blue);font-weight:600}
+.pr-tag{background:var(--yellow);color:#fff;border-radius:3px;padding:1px 6px;font-size:10px;font-weight:700;margin-left:4px}
+
+/* GREYSCALE */
+.day-content.greyed{filter:grayscale(.85) opacity(.55);pointer-events:none}
+
+/* MUSCLES TAB */
+.mus-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
+.mus-stat{background:var(--white);border-radius:8px;box-shadow:var(--sh);padding:14px;text-align:center}
+.mus-num{display:block;font-size:26px;font-weight:400;letter-spacing:-.5px}
+.mus-lbl{font-size:11px;color:var(--t2);margin-top:2px}
+.mus-legend{display:flex;gap:18px;margin-bottom:18px;flex-wrap:wrap;align-items:center}
+.mus-leg-item{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--t2)}
+.mus-swatch{width:13px;height:13px;border-radius:3px;flex-shrink:0}
+.mus-wrap{display:flex;gap:28px;justify-content:center;flex-wrap:wrap;margin-bottom:24px}
+.mus-view{text-align:center}
+.mus-label{font-size:11px;font-weight:600;color:var(--t3);letter-spacing:1px;margin-bottom:8px}
+.mus-svg{width:175px;height:auto;display:block;margin:0 auto}
+.m-rgn{cursor:pointer;transition:opacity .15s}
+.m-rgn:hover{opacity:.8}
+.mus-info{background:var(--white);border-radius:8px;box-shadow:var(--sh);padding:18px;min-height:80px}
+.mus-info-hint{font-size:13px;color:var(--t3);text-align:center;padding:16px 0}
+.mus-info-name{font-size:15px;font-weight:500;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.mus-badge{font-size:10px;padding:2px 8px;border-radius:10px;font-weight:600}
+.mus-badge.pri{background:#e6f4ea;color:#137333}
+.mus-badge.sec{background:#f1f3f4;color:#5f6368}
+.mus-exlist{display:flex;flex-direction:column;gap:7px}
+.mus-ex-row{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--t2);padding:6px 10px;background:var(--page);border-radius:6px}
+.mus-ex-row b{color:var(--t1)}
+@media(max-width:560px){.mus-stats{grid-template-columns:repeat(2,1fr)}.mus-svg{width:148px}.mus-wrap{gap:16px}}
+
+/* PROGRESS */
+.stat-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:14px;margin-bottom:20px}
+.stat-c{background:var(--white);border-radius:8px;box-shadow:var(--sh);padding:18px;text-align:center}
+.stat-n{font-size:26px;font-weight:400;letter-spacing:-.5px}
+.c1{color:var(--blue)}.c2{color:var(--green)}.c3{color:var(--yellow)}.c4{color:var(--red)}
+.stat-l{font-size:11px;color:var(--t2);margin-top:2px}
+
+/* SYNC CARD */
+.sync-card{background:var(--white);border-radius:8px;box-shadow:var(--sh);padding:20px;margin-bottom:16px}
+.sync-card h3{font-size:14px;font-weight:500;margin-bottom:6px}
+.sync-card p{font-size:13px;color:var(--t2);line-height:1.6;margin-bottom:14px}
+.sync-btns{display:flex;gap:10px;flex-wrap:wrap}
+
+.tbl-wrap{background:var(--white);border-radius:8px;box-shadow:var(--sh);overflow:hidden;overflow-x:auto}
+.dtbl{width:100%;border-collapse:collapse}
+.dtbl th{text-align:left;padding:11px 16px;font-size:10px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--t2);border-bottom:1px solid var(--border);background:#fafafa}
+.dtbl td{padding:12px 16px;font-size:13px;border-bottom:1px solid var(--border)}
+.dtbl tr:last-child td{border-bottom:none}
+.dtbl tr:hover td{background:#fafbff}
+.td-hi{font-size:15px;font-weight:500;color:var(--blue)}
+.td-sm{font-size:11px;color:var(--t3)}
+
+/* ADMIN */
+.adm-card{background:var(--white);border-radius:8px;box-shadow:var(--sh);padding:20px;margin-bottom:16px}
+.adm-card h3{font-size:14px;font-weight:500;margin-bottom:16px;border-bottom:1px solid var(--border);padding-bottom:12px}
+.form-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+.ff{display:flex;flex-direction:column;gap:4px}
+.fl{font-size:11px;font-weight:500;color:var(--t2)}
+.fi,.fs,.fta{border:1px solid var(--border);border-radius:4px;padding:8px 10px;font-size:13px;color:var(--t1);outline:none;font-family:inherit}
+.fi:focus,.fs:focus,.fta:focus{border-color:var(--blue);box-shadow:0 0 0 2px rgba(26,115,232,.15)}
+.fta{resize:vertical;min-height:56px}
+.f-submit{background:var(--blue);color:#fff;border:none;border-radius:4px;padding:9px 20px;font-size:13px;font-weight:500;cursor:pointer;margin-top:8px}
+.cust-list{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+.cust-item{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:#fafafa;border-radius:6px;border:1px solid var(--border)}
+.ci-name{font-size:13px;font-weight:500}
+.ci-meta{font-size:11px;color:var(--t2);margin-top:1px}
+.del-btn{background:none;border:none;color:var(--red);font-size:12px;font-weight:500;cursor:pointer;padding:4px 8px;border-radius:4px}
+.del-btn:hover{background:#fce8e6}
+
+/* GUIDE */
+.g-card{background:var(--white);border-radius:8px;box-shadow:var(--sh);overflow:hidden;margin-bottom:16px}
+.g-head{padding:13px 20px;border-bottom:1px solid var(--border);font-size:13px;font-weight:500}
+.g-rules{padding:8px 12px}
+.rule-item{display:flex;gap:10px;align-items:flex-start;padding:9px 8px;border-radius:4px;font-size:13px;color:var(--t2);line-height:1.55}
+.rule-item:hover{background:#f8f9fa}
+.rdot{width:6px;height:6px;border-radius:50%;background:var(--blue);margin-top:8px;flex-shrink:0}
+.gtbl{width:100%;border-collapse:collapse}
+.gtbl th{text-align:left;padding:10px 16px;font-size:10px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--t2);border-bottom:1px solid var(--border);background:#fafafa}
+.gtbl td{padding:11px 16px;font-size:13px;border-bottom:1px solid var(--border);line-height:1.5}
+.gtbl tr:last-child td{border-bottom:none}
+.gtbl tr:hover td{background:#fafbff}
+.hi-g{color:#188038;font-weight:500}.hi-y{color:var(--yellow);font-weight:500}
+.nutr-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:0}
+.nc{padding:18px;border-right:1px solid var(--border);border-bottom:1px solid var(--border)}
+.nc-k{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--t2)}
+.nc-v{font-size:19px;font-weight:400;letter-spacing:-.3px;margin:4px 0}
+.nc-n{font-size:12px;color:var(--t2);line-height:1.5}
+
+/* UTIL */
+.btn-outline{background:var(--white);border:1px solid var(--border);border-radius:4px;padding:8px 16px;font-size:13px;font-weight:500;color:var(--t1);cursor:pointer;box-shadow:var(--sh)}
+.btn-outline:hover{background:#f0f4ff;border-color:var(--blue);color:var(--blue)}
+.btn-outline.danger:hover{background:#fce8e6;border-color:var(--red);color:var(--red)}
+.act-row{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(10px);background:#323232;color:#fff;padding:10px 20px;border-radius:4px;font-size:13px;z-index:600;opacity:0;transition:all .22s;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+@media(max-width:560px){.grid{grid-template-columns:1fr}.hdr-sub{font-size:10px}.page{padding:14px 12px 60px}.stat-row{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="hdr-top">
+    <div class="logo">
+      <div class="dots"><div class="dot d1"></div><div class="dot d2"></div><div class="dot d3"></div><div class="dot d4"></div></div>
+      <span class="logo-txt">Tomas Gym Program</span>
+    </div>
+    <span class="hdr-sub" id="cycle-sub">6-day cycle · 2× per week</span>
+    <div id="auth-btn-wrap"></div>
+  </div>
+  <div class="tabs" id="tab-bar"></div>
+</div>
+
+<!-- LOGIN GATE -->
+<div id="login-gate" style="position:fixed;inset:0;z-index:999;background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0">
+  <div style="display:flex;gap:5px;margin-bottom:18px">
+    <div style="width:13px;height:13px;border-radius:50%;background:#4285f4"></div>
+    <div style="width:13px;height:13px;border-radius:50%;background:#ea4335"></div>
+    <div style="width:13px;height:13px;border-radius:50%;background:#fbbc04"></div>
+    <div style="width:13px;height:13px;border-radius:50%;background:#34a853"></div>
+  </div>
+  <div style="font-size:52px;margin-bottom:12px">💪</div>
+  <div style="font-size:26px;font-weight:600;color:#fff;margin-bottom:6px">Tomas Gym</div>
+  <div style="font-size:14px;color:rgba(255,255,255,.5);margin-bottom:40px">Sign in to access your program</div>
+  <button id="gate-signin-btn" onclick="signInGoogle()" style="display:flex;align-items:center;gap:12px;background:#fff;border:none;border-radius:8px;padding:14px 28px;font-size:15px;font-weight:500;color:#202124;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.4);transition:transform .15s" onmouseover="this.style.transform='scale(1.03)'" onmouseout="this.style.transform='scale(1)'">
+    <svg width="20" height="20" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 6.29C4.672 4.163 6.656 3.58 9 3.58z"/></svg>
+    Continue with Google
+  </button>
+  <div id="gate-setup-hint" style="margin-top:20px;font-size:12px;color:rgba(255,255,255,.3)"></div>
+</div>
+
+<div id="pg-d1" class="page on"></div>
+<div id="pg-d2" class="page"></div>
+<div id="pg-d3" class="page"></div>
+<div id="pg-d4" class="page"></div>
+<div id="pg-d5" class="page"></div>
+<div id="pg-d6" class="page"></div>
+
+<!-- PROGRESS -->
+<div id="pg-prog" class="page">
+  <div class="stat-row" id="prog-stats"></div>
+  <div class="tbl-wrap"><table class="dtbl" id="prog-tbl"></table></div>
+  <div class="act-row">
+    <button class="btn-outline" onclick="exportCSV()">Export CSV</button>
+    <button class="btn-outline danger" onclick="resetWeights()">Reset weights</button>
+    <button class="btn-outline danger" onclick="resetCycle()">Reset cycle</button>
+  </div>
+</div>
+
+<!-- ADMIN -->
+<div id="pg-admin" class="page">
+  <div class="sync-card" id="sync-card">
+    <h3>☁️ Cloud Sync</h3>
+    <div id="sync-body">
+      <p style="font-size:13px;color:var(--t2);margin-bottom:14px">Sign in with Google to automatically sync all your progress, weights, and videos across every device.</p>
+      <button class="btn-google" onclick="signInGoogle()">
+        <svg width="18" height="18" viewBox="0 0 18 18" style="flex-shrink:0"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 6.29C4.672 4.163 6.656 3.58 9 3.58z"/></svg>
+        Sign in with Google
+      </button>
+      <p style="font-size:11px;color:var(--t3);margin-top:10px">First time? You'll need to set up Firebase once. <a href="#" onclick="showFirebaseSetup();return false" style="color:var(--blue)">Click here to set up →</a></p>
+    </div>
+  </div>
+  <div id="firebase-setup-card" class="sync-card" style="display:none">
+    <h3>🔧 Firebase Setup (one-time)</h3>
+    <p style="font-size:13px;color:var(--t2);line-height:1.7;margin-bottom:12px">
+      Paste your Firebase config below (include the <b>databaseURL</b> field) and click Save.
+    </p>
+    <textarea id="fb-cfg-input" style="width:100%;height:120px;font-family:monospace;font-size:12px;padding:8px;border:1px solid var(--border);border-radius:6px;resize:vertical" placeholder='{
+  apiKey: "...",
+  authDomain: "...",
+  databaseURL: "https://your-project-default-rtdb.firebaseio.com",
+  projectId: "...",
+  ...
+}'></textarea>
+    <div style="display:flex;gap:8px;margin-top:10px">
+      <button class="btn-outline" onclick="saveFirebaseConfig()">💾 Save Config</button>
+      <button class="btn-outline" onclick="document.getElementById('firebase-setup-card').style.display='none'">Cancel</button>
+    </div>
+  </div>
+  <div class="adm-card">
+    <h3>Add Custom Exercise</h3>
+    <div class="form-grid">
+      <div class="ff"><label class="fl">Name *</label><input class="fi" id="f-name" placeholder="e.g. Box Jump"></div>
+      <div class="ff"><label class="fl">Day *</label>
+        <select class="fs" id="f-day">
+          <option value="d1">Day 1 – Lower Body Power</option><option value="d2">Day 2 – Push & Shoulders</option>
+          <option value="d3">Day 3 – Pull & Back</option><option value="d4">Day 4 – Hinge & Glutes</option>
+          <option value="d5">Day 5 – Core & Rotation</option><option value="d6">Day 6 – Full Body & Deload</option>
+        </select></div>
+      <div class="ff"><label class="fl">Type *</label>
+        <select class="fs" id="f-type"><option value="k">🔵 Knee Prehab</option><option value="s">🔴 Strength</option><option value="t">🟢 Tennis</option><option value="x">🟡 Stretch</option></select></div>
+      <div class="ff"><label class="fl">Sets</label><input class="fi" id="f-sets" placeholder="3"></div>
+      <div class="ff"><label class="fl">Reps / Duration</label><input class="fi" id="f-reps" placeholder="10–12"></div>
+      <div class="ff"><label class="fl">Primary muscles</label><input class="fi" id="f-mp" placeholder="Quads, Glutes"></div>
+      <div class="ff"><label class="fl">Secondary muscles</label><input class="fi" id="f-ms" placeholder="Core"></div>
+      <div class="ff"><label class="fl">YouTube search query</label><input class="fi" id="f-yt" placeholder="exercise tutorial form"></div>
+    </div>
+    <div class="ff" style="margin-top:12px"><label class="fl">Coaching tip</label><textarea class="fta" id="f-tip" placeholder="Key coaching cue..."></textarea></div>
+    <button class="f-submit" onclick="addCustom()">Add Exercise</button>
+  </div>
+  <div class="adm-card">
+    <h3>Custom Exercises <span style="font-size:12px;font-weight:400;color:var(--t3)" id="custom-count"></span></h3>
+    <div class="cust-list" id="cust-list"></div>
+  </div>
+</div>
+
+<!-- GUIDE -->
+<div id="pg-guide" class="page">
+  <div class="g-card"><div class="g-head">Quick rules</div><div class="g-rules">
+    <div class="rule-item"><div class="rdot"></div>Train each session at least 48 hours apart — e.g. Mon + Thu, Tue + Fri</div>
+    <div class="rule-item"><div class="rdot"></div>Always complete the Knee Prehab section before any lifting</div>
+    <div class="rule-item"><div class="rdot"></div>Rest 2–3 min between compound lifts · 90 sec between isolation exercises</div>
+    <div class="rule-item"><div class="rdot"></div>Stop 1–3 reps short of failure most sets — push to failure occasionally to calibrate</div>
+    <div class="rule-item"><div class="rdot"></div>Add 2.5 kg when you hit the top of the rep range across all sets with good form</div>
+    <div class="rule-item"><div class="rdot"></div>Pain is a stop sign — not a push-through signal</div>
+  </div></div>
+  <div class="g-card"><div class="g-head">6-Day Cycle Logic</div><div class="g-rules">
+    <div class="rule-item"><div class="rdot"></div>Complete sessions 2× per week. Each session = the next uncompleted day in the cycle.</div>
+    <div class="rule-item"><div class="rdot"></div>Day 1 → Day 2 → … → Day 6. After Day 6, the full cycle resets and you start from Day 1 again.</div>
+    <div class="rule-item"><div class="rdot"></div>Every day has 4 types: 🔵 Knee prehab · 🔴 Strength · 🟢 Tennis (gym) · 🟡 Stretching</div>
+    <div class="rule-item"><div class="rdot"></div>To add a tutorial video to any exercise: click the exercise card, then "+ Add Tutorial Video"</div>
+  </div></div>
+  <div class="g-card"><div class="g-head">Progression rules</div>
+    <table class="gtbl">
+      <tr><th>Scenario</th><th>Action</th></tr>
+      <tr><td>Hit top of rep range across all sets with good form</td><td class="hi-g">Add 2.5 kg next session</td></tr>
+      <tr><td>Hit middle of rep range on some sets</td><td>Keep weight — aim for top next time</td></tr>
+      <tr><td>Fall below bottom of rep range</td><td>Keep weight, focus on form</td></tr>
+      <tr><td>Exercise feels easy but rep count is low</td><td class="hi-y">Too far from failure — push closer</td></tr>
+    </table>
+  </div>
+  <div class="g-card"><div class="g-head">Nutrition targets</div>
+    <div class="nutr-grid">
+      <div class="nc"><div class="nc-k">Daily protein</div><div class="nc-v" style="color:var(--blue)">1.6–2.2 g/kg</div><div class="nc-n">Spread across 4–5 meals. Chicken, fish, eggs, whey.</div></div>
+      <div class="nc"><div class="nc-k">Creatine</div><div class="nc-v" style="color:var(--green)">3–5 g/day</div><div class="nc-n">Every day — even rest days. Timing doesn't matter.</div></div>
+      <div class="nc"><div class="nc-k">Sleep</div><div class="nc-v" style="color:var(--red)">7–9 hours</div><div class="nc-n">Most important recovery tool. GH peaks during deep sleep.</div></div>
+      <div class="nc"><div class="nc-k">Session spacing</div><div class="nc-v" style="color:var(--yellow)">48 h+</div><div class="nc-n">Mon + Thu · Tue + Fri · Wed + Sat</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- MUSCLES -->
+<div id="pg-muscles" class="page"></div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ═══ DATA ═══════════════════════════════════════════════════
+   type: k=knee  s=strength  t=tennis (gym only)  x=stretch
+   mp=primary muscles  ms=secondary muscles
+═══════════════════════════════════════════════════════════════ */
+const E=(id,type,name,sets,reps,mp,ms,tip,yt)=>({id,type,name,sets,reps,mp,ms,tip,yt});
+
+const DAYS=[
+ {id:'d1',num:1,name:'Lower Body Power',icon:'🦵',
+  desc:'Week 1A — Quads · Glutes · Hamstrings · Calves · Explosive lateral court movement',exercises:[
+  // ── Knee Prehab (3) ──────────────────────────────────────
+  E('tke','k','Terminal Knee Extension','3','15–20/leg',['VMO'],['Quad'],'Band behind knee — fully straighten, squeeze VMO hard at end range. Best entry-point exercise for patellar tracking.','terminal knee extension band exercise form'),
+  E('lat-band','k','Lateral Band Walk','3','15 steps/way',['Glute Med'],['VMO','Adductors'],'Band above knees, hips back, stay low — prevents knee valgus collapse on every squat and lunge.','lateral band walk resistance band exercise'),
+  E('rev-nordic','k','Reverse Nordic Curl','3','8–10',['Hamstrings'],['Knee Flexors'],'Kneel, lean back slowly under full control — use hands to return. Top eccentric exercise for hamstring and knee flexor resilience.','reverse nordic curl exercise form'),
+  // ── Strength (4) ─────────────────────────────────────────
+  E('bar-squat','s','Barbell Back Squat','4','5–8',['Quads','Glutes'],['Hamstrings','Core','VMO'],'Bar on upper traps, brace core hard, break at hips and knees together — reach parallel or below. King of lower body strength.','barbell back squat proper form tutorial'),
+  E('dbl-rdl','s','Dumbbell Romanian Deadlift','3','10–15',['Hamstrings','Glutes'],['Erectors','Core'],'Hinge at the hip — feel a deep hamstring stretch at the bottom of every rep. Keeps the posterior chain strong without spinal compression of barbell RDL.','dumbbell romanian deadlift form tutorial'),
+  E('step-up','s','Weighted Step-Up','3','10–12/leg',['VMO','Glute Med'],['Quads','Glutes'],'Drive through the heel of the elevated foot — control the descent fully. Best unilateral VMO + glute builder for court lunge mechanics.','dumbbell step up exercise tutorial'),
+  E('seated-calf','s','Seated Calf Raise','3','15–20 (3 sec down)',['Calves','Soleus'],['Achilles'],'Knee bent 90° — isolates the soleus, the primary Achilles tendon loader. Slow eccentric is essential for tendon health. Most important calf exercise in the program.','seated calf raise soleus achilles tendon exercise'),
+  // ── Tennis (2) ───────────────────────────────────────────
+  E('lat-bound','t','Single-Leg Lateral Bound','3','8/side',['Glute Med','Quads'],['Calves','Core'],'Explosive one-leg push-off laterally, stick the landing on the opposite leg — builds the exact lateral push-off used for wide court balls.','single leg lateral bound plyometric exercise'),
+  E('lat-shuffle','t','Resistance Band Lateral Shuffle','3','10m each way',['Glute Med','Quads'],['Calves','Adductors'],'Band around ankles, stay low and wide — push off with the outside foot. Directly trains the lateral glute strength needed for court coverage.','resistance band lateral shuffle exercise gym'),
+  // ── Stretching (3) ───────────────────────────────────────
+  E('hip-flex-str','x','Kneeling Hip Flexor Stretch','2','45–60 sec/side',['Hip Flexors'],['Quad'],'Tuck hips posteriorly before leaning — feel the stretch deep in the front hip, not the lower back. Critical for full stride length on court.','kneeling hip flexor stretch tutorial'),
+  E('quad-str','x','Standing Quad Stretch','2','40 sec/side',['Quads'],['Hip Flexors'],'Knee pointing straight down, squeeze the glute — use a wall for balance if needed.','standing quad stretch form'),
+  E('calf-str','x','Wall Calf Stretch','2','45 sec/side (straight + bent leg)',['Calves','Soleus'],['Achilles','Plantar Fascia'],'Straight leg for gastrocnemius, then slightly bent knee for soleus — hold both positions. Non-negotiable for Achilles protection.','wall calf stretch achilles tutorial'),
+ ]},
+ {id:'d2',num:2,name:'Push & Shoulders',icon:'💪',
+  desc:'Week 1B — Chest · Front/Side Delt · Triceps · Rotator cuff health · Serve power',exercises:[
+  // ── Knee Prehab (2) ──────────────────────────────────────
+  E('span-squat','k','Spanish Squat (band)','3','30–45 sec',['Patellar Tendon'],['Quads','VMO'],'Band around a fixed post pulls knees forward into dorsiflexion — pure isometric patellar tendon load. Evidence-based for tendinopathy management.','spanish squat band exercise form'),
+  E('glute-bnd','k','Glute Bridge with Band','3','15–20',['Glutes','Hamstrings'],['Core','VMO'],'Push knees actively out against the band throughout — builds the hip abductor strength that keeps knees tracking correctly under load.','glute bridge resistance band exercise'),
+  // ── Strength (5) ─────────────────────────────────────────
+  E('flat-bench','s','Flat Dumbbell Bench Press','4','8–12',['Chest'],['Front Delt','Triceps'],'Full range — let dumbbells touch at the bottom, press to nearly locked. Primary horizontal push for chest and shoulder mass.','flat dumbbell bench press proper form'),
+  E('inc-press','s','Incline Dumbbell Press','3','8–12',['Upper Chest','Front Delt'],['Triceps'],'3-second descent, deep stretch at the bottom — upper chest emphasis fills out the shoulder-chest shelf.','incline dumbbell press proper form'),
+  E('bar-ohp','s','Barbell Overhead Press','3','5–8',['Front Delt','Side Delt'],['Triceps','Core','Traps'],'Bar at upper chest, brace core hard — press straight up, lock out at the top. The definitive vertical push; builds pressing power for the serve.','barbell overhead press proper form tutorial'),
+  E('lat-raise','s','Lateral Raise','3','15–20',['Side Delt'],['Traps'],'Slight forward lean — cable preferred for constant tension. Lead with elbows, not wrists. Essential for shoulder width and stability.','lateral raise side deltoid tutorial'),
+  E('dips','s','Dips (weighted or bodyweight)','3','8–12',['Chest','Triceps'],['Front Delt'],'Lean slightly forward for chest emphasis — full depth, elbows at 90°. Best compound chest + tricep finisher; add belt weight when bodyweight is easy.','weighted dips chest tricep form tutorial'),
+  // ── Tennis (3) ───────────────────────────────────────────
+  E('sh-ext-rot','t','Shoulder External Rotation (cable)','3','15–20/side',['Rotator Cuff'],['Rear Delt'],'Elbow at 90°, forearm rotates out slowly — the most important rotator cuff exercise for serve deceleration safety.','shoulder external rotation cable exercise'),
+  E('sh-int-rot','t','Shoulder Internal Rotation (cable)','3','15–20/side',['Rotator Cuff','Subscapularis'],['Front Delt'],'Elbow at 90°, forearm rotates inward slowly — balances external rotation. Prevents impingement and shoulder injury.','shoulder internal rotation cable exercise rotator cuff'),
+  E('med-ball-oh','t','Medicine Ball Overhead Slam','3','8–10',['Shoulders','Triceps'],['Core','Lats'],'Drive from legs, reach full extension overhead, slam down hard — full kinetic chain serve power drill.','medicine ball overhead slam exercise gym'),
+  // ── Stretching (2) ───────────────────────────────────────
+  E('chest-open','x','Chest Opener Stretch','2','45 sec',['Chest','Front Delt'],['Biceps'],'Foam roller under spine or hands clasped behind head — counters all pressing work. Open the ribcage and breathe deeply.','chest opener stretch foam roller tutorial'),
+  E('cross-sh','x','Cross-Body Shoulder Stretch','2','40 sec/side',['Rear Delt','Rotator Cuff'],['Upper Back'],'Pull arm across chest, keep shoulder pressed down — stretches the posterior capsule, critical after all the rotator cuff work.','cross body shoulder stretch tutorial'),
+ ]},
+ {id:'d3',num:3,name:'Pull & Back',icon:'🔙',
+  desc:'Week 2A — Lats · Rhomboids · Biceps · Forehand power · Forearm & wrist health',exercises:[
+  // ── Knee Prehab (2) ──────────────────────────────────────
+  E('tke-d3','k','Terminal Knee Extension','3','15–20/leg',['VMO'],['Quad'],'Band behind knee — fully straighten and squeeze VMO at end range. Keep tendons loaded every session.','terminal knee extension band exercise'),
+  E('latband-d3','k','Lateral Band Walk','3','15 steps/way',['Glute Med'],['VMO'],'Band above knees, stay low — consistent glute med stimulus every session prevents knee drift under fatigue.','lateral band walk exercise tutorial'),
+  // ── Strength (5) ─────────────────────────────────────────
+  E('pulldown','s','Pull-Up / Lat Pulldown','3','6–12',['Lats','Rhomboids'],['Biceps','Rear Delt'],'Full arm extension at top to stretch the lats — pull elbows down toward hips. Best vertical pulling exercise.','lat pulldown pull up proper form tutorial'),
+  E('db-row','s','Dumbbell / Barbell Row','3','8–12',['Lats','Rhomboids'],['Biceps','Rear Delt'],'Full stretch at the bottom — squeeze the shoulder blade hard at the top. Primary back thickness builder.','dumbbell bent over row proper form'),
+  E('face-pull','s','Face Pull (cable)','3','15–20',['Rear Delt','Rotator Cuff'],['Upper Traps'],'Cable at head height — pull toward face, flare elbows up and out into a W shape. Protects the shoulder joint and builds rear delt.','face pull cable exercise tutorial'),
+  E('inc-curl','s','Incline Dumbbell Curl','2','10–15',['Biceps'],['Brachialis'],'45–60° incline, arms hang fully — trains bicep at full stretch, highest growth stimulus position.','incline dumbbell curl form'),
+  E('hammer','s','Hammer Curl','2','12–15',['Brachialis','Biceps'],['Forearm'],'Neutral grip (thumbs up) throughout — builds brachialis and forearm thickness alongside biceps.','hammer curl dumbbell form'),
+  // ── Tennis (2) ───────────────────────────────────────────
+  E('woodchop-fh','t','Cable Woodchop — High to Low (Forehand)','3','12–15/side',['Obliques','Core'],['Lats','Shoulder'],'Rotate from the hips first, then shoulders — pull cable diagonally across body. Directly trains forehand groundstroke power transfer.','cable woodchop high to low forehand tennis gym'),
+  E('fore-pronate','t','Forearm Pronation & Supination','2','15–20/side',['Forearm Flexors','Forearm Extensors'],['Wrist'],'Light dumbbell, rotate wrist slowly both ways — builds racket head speed for topspin and prevents tennis elbow.','forearm pronation supination dumbbell exercise tennis'),
+  // ── Stretching (3) ───────────────────────────────────────
+  E('thor-rot','x','Thoracic Spine Rotation (book opener)','2','10 reps/side',['Upper Back'],['Chest','Shoulders'],'Lie on side, rotate upper back — keep knees stacked. Essential for full backswing range of motion.','thoracic spine rotation book opener stretch'),
+  E('wrist-str','x','Wrist Flexor & Extensor Stretch','2','30 sec each direction',['Forearm Flexors','Forearm Extensors'],['Wrist'],'Arm straight, palm facing up then down — non-negotiable daily stretch for tennis elbow prevention.','wrist flexor extensor stretch tennis'),
+  E('lat-str','x','Lat & Side Stretch','2','40 sec/side',['Lats'],['Obliques','Shoulder'],'Arm overhead, lean to opposite side — walk hand along wall for deeper stretch. Counters all the pulling work.','lat stretch side body overhead'),
+ ]},
+ {id:'d4',num:4,name:'Hinge & Glutes',icon:'🍑',
+  desc:'Week 2B — Hamstrings · Glutes · Erectors · Hip drive · Hip mobility',exercises:[
+  // ── Knee Prehab (3) ──────────────────────────────────────
+  E('span-d4','k','Spanish Squat (band)','3','30–45 sec',['Patellar Tendon'],['Quads','VMO'],'Band pulls knees into dorsiflexion — pure isometric patellar tendon load. Hold steady, breathe throughout.','spanish squat band exercise'),
+  E('wall-sit','k','Single-Leg Wall Sit','3','20–30 sec/leg',['VMO','Quads'],['Glutes'],'Back flat against wall, other leg raised — high-tolerance isometric VMO hold. Progress duration before adding load.','single leg wall sit exercise'),
+  E('glu-bnd-d4','k','Glute Bridge with Band','3','15–20',['Glutes','Hamstrings'],['VMO'],'Push knees out against band — full hip extension at the top, hold 1 second. Activates glutes before heavy hinge work.','glute bridge band exercise'),
+  // ── Strength (4) ─────────────────────────────────────────
+  E('deadlift','s','Conventional Deadlift','3','4–8',['Hamstrings','Glutes','Erectors'],['Quads','Traps','Core'],'Brace core hard, push the floor away — build tension before the bar leaves the ground. The single heaviest compound lift in the program.','conventional deadlift tutorial proper form'),
+  E('hip-thrust','s','Hip Thrust','3','10–15',['Glutes','Hamstrings'],['Core'],'Barbell across hips, drive through heels — squeeze glutes hard at full extension for 1 second. Highest glute EMG activation of any exercise.','barbell hip thrust glute tutorial'),
+  E('bulg-split','s','Bulgarian Split Squat','3','8–10/leg',['Quads','Glutes'],['Hamstrings','VMO'],'Rear foot elevated, lean slightly forward — the best unilateral lower body exercise for strength and balance.','bulgarian split squat form tutorial'),
+  E('leg-curl-d4','s','Leg Curl (machine)','3','10–15',['Hamstrings'],['Calves'],'Full range — 2-second eccentric on the way back down. Isolates hamstrings through knee flexion; complements the hip-hinge of the deadlift for complete hamstring development.','leg curl machine hamstring exercise proper form'),
+  // ── Tennis (2) ───────────────────────────────────────────
+  E('cable-hip-rot','t','Cable Hip Rotation (standing)','3','12–15/side',['Hip Rotators','Glutes'],['Core','Obliques'],'Cable at hip height, rotate explosively from the hips — directly mimics the hip turn that generates groundstroke power.','standing cable hip rotation exercise gym'),
+  E('lunge-rot','t','Dumbbell Lunge with Rotation','3','10/side',['Quads','Glutes'],['Core','Obliques'],'Lunge forward, rotate torso fully over the front knee — trains the split-step landing plus swing rotation in one movement.','dumbbell lunge with rotation exercise'),
+  // ── Stretching (3) ───────────────────────────────────────
+  E('pigeon','x','Pigeon Pose','2','60 sec/side',['Glutes','Hip Rotators'],['Hip Flexors'],'Front shin parallel to mat — breathe deep into the glute. The most important hip stretch for tennis rotation range.','pigeon pose hip stretch tutorial'),
+  E('ham-str','x','Seated Hamstring Stretch','2','45 sec/side',['Hamstrings'],['Calves'],'Hinge forward at hips, keep back flat — never round the lower back. Counters all the hinge loading.','seated hamstring stretch proper form'),
+  E('itband','x','IT Band Crossover Stretch','2','40 sec/side',['IT Band','TFL'],['Glutes'],'Cross the affected leg behind, lean to the opposite side — feel the outer thigh. Common tightness area in tennis players from lateral movement.','it band stretch crossover tutorial'),
+ ]},
+ {id:'d5',num:5,name:'Core & Rotation',icon:'⚡',
+  desc:'Week 3A — Abs · Obliques · Deep core · Backhand power · Anti-rotation stability',exercises:[
+  // ── Knee Prehab (2) ──────────────────────────────────────
+  E('rev-nord-d5','k','Reverse Nordic Curl','3','8–10',['Hamstrings'],['Knee Flexors'],'Kneel, lean back slowly under full control — use hands to return. Eccentric knee flexor loading for hamstring resilience.','reverse nordic curl exercise'),
+  E('wall-sit-d5','k','Single-Leg Wall Sit','3','20–30 sec/leg',['VMO','Quads'],['Glutes'],'Back flat against wall — full VMO engagement, other leg raised. Isometric tendon tolerance training.','single leg wall sit tutorial'),
+  // ── Strength (5) ─────────────────────────────────────────
+  E('plank','s','Plank / RKC Plank','3','30–60 sec',['Core','Deep Core'],['Shoulders','Glutes'],'RKC: squeeze glutes, fists, and quads simultaneously — quality beats duration. Build to 60 sec before adding time.','rkc plank proper form tutorial'),
+  E('ab-wheel','s','Ab Wheel Rollout','3','8–12',['Core','Abs'],['Lats','Shoulders'],'Brace hard before rolling — go only as far as you can control. Best anti-extension core exercise, high carryover to all lifts.','ab wheel rollout proper form'),
+  E('hang-raise','s','Hanging Leg Raise','3','10–15',['Lower Abs','Hip Flexors'],['Core'],'Slow controlled descent — no swinging, no kipping. Bent-knee is fine to start; progress to straight leg.','hanging leg raise form tutorial'),
+  E('dead-bug','s','Dead Bug','3','10/side',['Deep Core'],['Hip Flexors','Erectors'],'Lower back pressed firmly to floor throughout — opposite arm and leg extend slowly. Best deep core stability exercise.','dead bug core exercise form'),
+  E('pallof','s','Pallof Press','2','12–15/side',['Core','Obliques'],['Shoulders'],'Cable at chest height — resist rotation completely. The anti-rotation stimulus is more useful for tennis than any crunch.','pallof press anti rotation core'),
+  // ── Tennis (2) ───────────────────────────────────────────
+  E('woodchop-bh','t','Cable Woodchop — Low to High (Backhand)','3','12–15/side',['Obliques','Core'],['Shoulder','Lats'],'Drive from the hips upward diagonally — mirror of the forehand woodchop. Trains backhand power from the ground up.','cable woodchop low to high backhand gym'),
+  E('med-rot','t','Medicine Ball Rotational Wall Throw','3','8–10/side',['Obliques','Core'],['Glutes','Shoulders'],'Stand sideways to wall, throw from hip height with full rotation — absorb the rebound. Highest-velocity rotational power drill in the program.','medicine ball rotational throw wall gym'),
+  // ── Stretching (3) ───────────────────────────────────────
+  E('cat-cow','x','Cat-Cow Stretch','2','10 slow reps',['Erectors','Core'],['Hip Flexors'],'Breathe: arch on inhale, round on exhale — move slowly and with full range. Decompresses the spine after core loading.','cat cow stretch spine mobility'),
+  E('thor-rot-d5','x','Thoracic Rotation Stretch','2','10/side',['Upper Back','Chest'],['Shoulders'],'Seated or lying — rotate upper back, keep hips as still as possible. Maintains the rotation range needed for groundstrokes.','thoracic rotation stretch mobility'),
+  E('lat-trunk','x','Lateral Trunk Stretch','2','40 sec/side',['Obliques','Lats'],['Intercostals'],'Arm overhead, side bend — reach tall first, then lean. Counters the lateral compression from all the rotation work.','lateral trunk stretch obliques side bend'),
+ ]},
+ {id:'d6',num:6,name:'Full Body & Deload',icon:'🌟',
+  desc:'Week 3B — Full body at lower intensity · Reactive power · Complete mobility · Active recovery',exercises:[
+  // ── Knee Prehab (2) ──────────────────────────────────────
+  E('tke-d6','k','Terminal Knee Extension','3','15–20/leg',['VMO'],['Quad'],'Band behind knee — end-range VMO squeeze. Maintain tendon stimulus even on deload day.','terminal knee extension exercise'),
+  E('monster-walk','k','Monster Walk','3','15 steps/way',['Glute Med','Hip Abductors'],['VMO','Quads'],'Band above knees or ankles, squat position — walk forward then backward maintaining constant tension. Adds hip abductor variety to the prehab rotation.','monster walk band exercise glute med'),
+  // ── Strength (3) ─────────────────────────────────────────
+  E('db-sh-d6','s','Dumbbell Shoulder Press','3','8–10',['Front Delt','Side Delt'],['Triceps'],'Full range, controlled tempo — lighter than the barbell OHP. Quality movement pattern, not max effort. Upper body maintenance on deload.','dumbbell shoulder press form'),
+  E('pullup-d6','s','Pull-Up / Lat Pulldown','3','6–10',['Lats'],['Biceps','Rear Delt'],'Full arm extension at the top — pull elbows to hips. Lighter than Day 3; focus on feel and range of motion.','pull up proper form tutorial'),
+  E('calf-d6','s','Eccentric Calf Raise','3','15–20 (3 sec down)',['Calves'],['Achilles'],'Raise with two legs, lower with one — the slow single-leg eccentric is the gold standard for Achilles tendon resilience.','eccentric calf raise achilles exercise'),
+  // ── Tennis (3) ───────────────────────────────────────────
+  E('split-step','t','Split Step Reactive Jump','3','10 reps',['Calves','Quads'],['Glutes','Core'],'Two-foot jump, land softly on balls of feet in athletic stance — trains the reactive split-step timing used on every point in tennis.','split step plyometric reactive jump tennis'),
+  E('box-lat-jump','t','Box Lateral Jump','3','6–8/side',['Calves','Quads'],['Glutes','Core'],'One-leg push-off laterally onto a box — reactive lateral push-off power for wide court balls.','box lateral jump plyometric gym exercise'),
+  E('wrist-flex','t','Wrist Flexion & Extension (dumbbell)','2','15–20',['Forearm Flexors','Forearm Extensors'],['Wrist'],'Light dumbbell, full range both ways — maintenance wrist and forearm work on deload day. Prevents tennis elbow accumulation.','wrist flexion extension dumbbell exercise'),
+  // ── Stretching (4) ───────────────────────────────────────
+  E('worlds-gr','x','World\'s Greatest Stretch','2','5 reps/side',['Hip Flexors','Thoracic Spine'],['Hamstrings','Chest'],'Lunge, plant hand inside foot, rotate elbow to sky — the best single full-body mobility drill. Covers hip, thoracic, and shoulder in one flow.','worlds greatest stretch tutorial form'),
+  E('pigeon-d6','x','Pigeon Pose','2','60 sec/side',['Glutes','Hip Rotators'],['Hip Flexors'],'Front shin parallel to mat — breathe into it. Longest hold of the week; use this to fully release the hip rotators built up over the cycle.','pigeon pose hip stretch'),
+  E('child-d6','x','Child\'s Pose','2','60 sec',['Lats','Erectors'],['Shoulders'],'Sit back toward heels, walk hands forward — full spinal decompression and lat release after a full training cycle.','childs pose yoga cool down stretch'),
+  E('neck-str','x','Neck Stretch Series','2','30 sec each direction',['Neck Flexors','SCM'],['Upper Traps'],'Side tilt, forward tilt, gentle rotation — slow and controlled. Looking up at the ball throughout a tennis session tightens the neck significantly.','neck stretch upper trap tennis player'),
+ ]},
+];
+
+/* ═══ CONFIG ═════════════════════════════════════════════════ */
+const TYPE_MAP={
+  k:{label:'Knee Prehab',pill:'pill-k',stripe:'stripe-k',badge:'tbadge-k',title:'🔵 Knee Prehab',emoji:'🦵'},
+  s:{label:'Strength',   pill:'pill-s',stripe:'stripe-s',badge:'tbadge-s',title:'🔴 Strength',   emoji:'💪'},
+  t:{label:'Tennis',     pill:'pill-t',stripe:'stripe-t',badge:'tbadge-t',title:'🟢 Tennis',     emoji:'🎾'},
+  x:{label:'Stretch',    pill:'pill-x',stripe:'stripe-x',badge:'tbadge-x',title:'🟡 Stretching', emoji:'🧘'},
+};
+
+const MG=m=>{
+  const l=m.toLowerCase();
+  if(/quad|glute|hamstring|calf|vmo|adduct|hip flex|hip rot|knee|achilles|plantar|ankle|it band|tfl|patellar/.test(l)) return{bg:'#e6f4ea',c:'#188038',b:'#b7e1c3'};
+  if(/chest|upper chest|tricep|front delt/.test(l)) return{bg:'#e8f0fe',c:'#1a73e8',b:'#c6d4f5'};
+  if(/lat|rhom|bicep|brachi|rear delt|trap|erect/.test(l)) return{bg:'#fce8e6',c:'#c5221f',b:'#f5c6c2'};
+  if(/core|abs|obliq|deep core/.test(l)) return{bg:'#fef7e0',c:'#b06000',b:'#fddcad'};
+  if(/shoulder|side delt|rotator|delt|forearm|wrist/.test(l)) return{bg:'#f3e8fd',c:'#7b1fa2',b:'#d7b8f9'};
+  return{bg:'#f1f3f4',c:'#5f6368',b:'#e8eaed'};
+};
+
+/* ═══ STORAGE ════════════════════════════════════════════════ */
+const wdb    =()=>{ try{return JSON.parse(localStorage.getItem('gw3')||'{}')}catch{return{}} };
+const cdb    =()=>{ try{return JSON.parse(localStorage.getItem('completions')||'{}')}catch{return{}} };
+const custdb =()=>{ try{return JSON.parse(localStorage.getItem('custom_ex')||'[]')}catch{return[]} };
+const getVid =id=>localStorage.getItem('yt_vid_'+id);
+const setVid =(id,v)=>localStorage.setItem('yt_vid_'+id,v);
+const getImg =id=>localStorage.getItem('img_'+id);
+
+function getBest(id){ return wdb()[id]?.best||null }
+function saveW(id,kg){
+  const d=wdb(),prev=d[id]?.best||0;
+  if(!d[id])d[id]={best:0,history:[]};
+  const n=parseFloat(kg)||0; if(n<=0)return null;
+  d[id].history.push({w:n,dt:new Date().toISOString().slice(0,10)});
+  if(n>d[id].best)d[id].best=n;
+  localStorage.setItem('gw3',JSON.stringify(d));
+  syncWeights();
+  return{pr:n>prev&&prev>0,prev};
+}
+
+/* ═══ VIDEO FUNCTIONS ════════════════════════════════════════ */
+function parseYTId(url){
+  // Handles: watch URL, short URL, embed URL, or full <iframe> embed code pasted from YouTube
+  const m=url.match(/(?:v=|youtu\.be\/|embed\/)([a-zA-Z0-9_-]{11})/);
+  return m?m[1]:null;
+}
+
+function openSetVid(id,yt){
+  const ph=document.getElementById('vph-'+id);
+  const svp=document.getElementById('svp-'+id);
+  if(ph) ph.style.display='none';
+  if(svp){ svp.classList.add('on'); const inp=document.getElementById('svurl-'+id); if(inp)inp.focus(); }
+}
+
+function cancelSetVid(id){
+  const svp=document.getElementById('svp-'+id); if(svp) svp.classList.remove('on');
+  const vid=getVid(id);
+  if(!vid){ const ph=document.getElementById('vph-'+id); if(ph)ph.style.display='flex'; }
+  else{ const th=document.getElementById('vth-'+id); if(th)th.style.display='block'; }
+}
+
+function confirmSetVid(id){
+  const inp=document.getElementById('svurl-'+id); if(!inp)return;
+  const url=inp.value.trim();
+  const vid=parseYTId(url);
+  if(!vid){ toast('Paste a valid YouTube video URL (e.g. youtube.com/watch?v=...)'); return; }
+  setVid(id,vid); inp.value='';
+  syncVideo(id,vid);
+  document.getElementById('svp-'+id).classList.remove('on');
+  applyVideoThumb(id,vid);
+  toast('Tutorial video set — click thumbnail to play ✓');
+}
+
+function applyVideoThumb(id,vid){
+  const area=document.getElementById('va-'+id); if(!area) return;
+  // show thumbnail
+  let th=document.getElementById('vth-'+id);
+  if(!th){
+    th=document.createElement('div'); th.id='vth-'+id; th.className='vid-thumb';
+    th.setAttribute('data-eid',id);
+    th.onclick=function(){ playVid(this.dataset.eid) };
+    const img=document.createElement('img'); img.alt='thumbnail'; th.appendChild(img);
+    const ov=document.createElement('div'); ov.className='vid-thumb-overlay';
+    const pb=document.createElement('div'); pb.className='yt-play-lrg'; ov.appendChild(pb);
+    const lbl=document.createElement('div'); lbl.className='yt-lbl'; lbl.textContent='▶ Play Video'; ov.appendChild(lbl);
+    th.appendChild(ov); area.insertBefore(th,area.firstChild);
+  }
+  th.querySelector('img').src=`https://img.youtube.com/vi/${vid}/hqdefault.jpg`;
+  th.style.display='block';
+  // hide placeholder
+  const ph=document.getElementById('vph-'+id); if(ph) ph.style.display='none';
+  // show change button
+  let chg=area.querySelector('.change-vid');
+  if(!chg){
+    chg=document.createElement('button');
+    chg.className='vbtn change-vid'; chg.textContent='✏️ Change video';
+    chg.setAttribute('data-eid',id);
+    chg.onclick=function(e){ e.stopPropagation(); const ei=this.dataset.eid; const th2=document.getElementById('vth-'+ei); if(th2)th2.style.display='none'; openSetVid(ei,''); };
+    area.appendChild(chg);
+  }
+}
+
+function playVid(id){
+  const vid=getVid(id); if(!vid) return;
+  const wrap=document.getElementById('viw-'+id);
+  const iframe=document.getElementById('vif-'+id);
+  if(!wrap||!iframe) return;
+  iframe.src=`https://www.youtube.com/embed/${vid}?autoplay=1&rel=0`;
+  wrap.classList.add('on');
+}
+function closeVid(id){
+  const wrap=document.getElementById('viw-'+id);
+  const iframe=document.getElementById('vif-'+id);
+  if(wrap) wrap.classList.remove('on');
+  if(iframe) iframe.src=''; // stop playback
+}
+
+/* ═══ IMAGE UPLOAD ═══════════════════════════════════════════ */
+function triggerUpload(id){ document.getElementById('fi-'+id)?.click() }
+function handleUpload(id,input){
+  if(!input.files[0])return;
+  const r=new FileReader();
+  r.onload=e=>{
+    const raw=new Image(); raw.onload=()=>{
+      const MAX=520,cv=document.createElement('canvas');
+      const ratio=Math.min(MAX/raw.width,MAX/raw.height,1);
+      cv.width=Math.round(raw.width*ratio); cv.height=Math.round(raw.height*ratio);
+      cv.getContext('2d').drawImage(raw,0,0,cv.width,cv.height);
+      const data=cv.toDataURL('image/jpeg',.78);
+      try{ localStorage.setItem('img_'+id,data); applyCustomImg(id,data); toast('Photo saved ✓') }
+      catch{ toast('Storage full — try a smaller image') }
+    }; raw.src=e.target.result;
+  }; r.readAsDataURL(input.files[0]); input.value='';
+}
+function applyCustomImg(id,data){
+  const area=document.getElementById('va-'+id); if(!area)return;
+  let img=area.querySelector('img.cust-img');
+  if(!img){ img=Object.assign(document.createElement('img'),{className:'cust-img',alt:id,style:'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:4'}); area.appendChild(img); }
+  img.src=data;
+  const ph=document.getElementById('vph-'+id); if(ph)ph.style.display='none';
+  const th=document.getElementById('vth-'+id); if(th)th.style.display='none';
+}
+
+/* ═══ CARD RENDERER ══════════════════════════════════════════ */
+function renderCard(ex){
+  const T=TYPE_MAP[ex.type];
+  const best=getBest(ex.id);
+  const vid=getVid(ex.id);
+  const customImg=getImg(ex.id);
+  const hasWeight=(ex.type==='s'||ex.type==='k');
+
+  const chips=[
+    ...ex.mp.map(m=>{ const g=MG(m); return `<span class="mc pri" style="background:${g.bg};color:${g.c};border-color:${g.b}"><span class="mc-num">①</span>${m}</span>`; }),
+    ...(ex.ms||[]).map(m=>{ const g=MG(m); return `<span class="mc sec" style="background:${g.bg};color:${g.c};border-color:${g.b}"><span class="mc-num">②</span>${m}</span>`; }),
+  ].join('');
+
+  const thumbHtml=vid?`<div class="vid-thumb" id="vth-${ex.id}" style="display:block" data-eid="${ex.id}" onclick="playVid(this.dataset.eid)">
+    <img src="https://img.youtube.com/vi/${vid}/hqdefault.jpg" alt="${ex.name}">
+    <div class="vid-thumb-overlay"><div class="yt-play-lrg"></div><div class="yt-lbl">▶ Play Video</div></div>
+  </div>`:'';
+
+  const phDisplay=vid?'none':'flex';
+  const changeHtml=vid?`<button class="vbtn change-vid" data-eid="${ex.id}" onclick="(function(e){e.stopPropagation();var ei=this.dataset.eid;var th=document.getElementById('vth-'+ei);if(th)th.style.display='none';openSetVid(ei,'');}).call(this,event)">✏️ Change video</button>`:'';
+
+  const wtHTML=hasWeight?`
+    <div class="wt-wrap">
+      <div class="wt-lbl">Best weight</div>
+      <div class="wt-row">
+        <input class="wt-in" id="wi-${ex.id}" type="number" min="0" step="0.5" placeholder="${best||'0'}" value="${best||''}">
+        <span class="wt-unit">kg</span>
+        <button class="wt-save" id="wb-${ex.id}" data-eid="${ex.id}" onclick="doSave(this.dataset.eid)">Save</button>
+      </div>
+      <div class="best-row" id="bl-${ex.id}">${best?`Best: <b>${best} kg</b>`:''}</div>
+    </div>`:'';
+
+  return `<div class="card">
+    <div class="card-stripe ${T.stripe}"></div>
+    <div class="vid-area" id="va-${ex.id}">
+      <div class="vid-iframe-wrap" id="viw-${ex.id}">
+        <button class="vid-close" onclick="closeVid('${ex.id}')">✕</button>
+        <iframe id="vif-${ex.id}" src="" allowfullscreen allow="autoplay; encrypted-media"></iframe>
+      </div>
+      ${thumbHtml}
+      ${customImg?`<img class="cust-img" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:4" src="${customImg}" alt="${ex.name}">`:''}
+      <div class="vid-ph" id="vph-${ex.id}" style="display:${customImg?'none':phDisplay}">
+        <div class="vid-ph-emoji">${T.emoji}</div>
+        <button class="set-vid-btn" data-eid="${ex.id}" data-yt="${ex.yt.replace(/"/g,'&quot;')}"
+          onclick="openSetVid(this.dataset.eid,this.dataset.yt)">+ Add Tutorial Video</button>
+        <div class="vid-ph-hint">Paste a YouTube URL or &lt;iframe&gt; embed code</div>
+      </div>
+      <div class="svp" id="svp-${ex.id}">
+        <label>Paste YouTube URL or embed code:</label>
+        <input id="svurl-${ex.id}" type="text" placeholder="https://youtube.com/watch?v=… or paste &lt;iframe&gt; embed code">
+        <div class="svp-btns">
+          <button class="svp-set" data-eid="${ex.id}" onclick="confirmSetVid(this.dataset.eid)">Set Video</button>
+          <button class="svp-cancel" data-eid="${ex.id}" onclick="cancelSetVid(this.dataset.eid)">Cancel</button>
+        </div>
+      </div>
+      <div class="vid-btns">
+        <a class="vbtn" href="https://www.youtube.com/results?search_query=${encodeURIComponent(ex.yt)}" target="_blank">▶ YouTube</a>
+        <button class="vbtn" data-eid="${ex.id}" onclick="triggerUpload(this.dataset.eid)">📷</button>
+      </div>
+      ${changeHtml}
+      <input type="file" id="fi-${ex.id}" accept="image/*" style="display:none" data-eid="${ex.id}" onchange="handleUpload(this.dataset.eid,this)">
+    </div>
+    <div class="cbody">
+      <div class="card-top">
+        <div class="ex-name">${ex.name}</div>
+        <span class="type-pill ${T.pill}">${T.label}</span>
+      </div>
+      <div class="muscles">${chips}</div>
+      <div class="ex-meta">
+        <div class="mitem"><div class="mk">Sets</div><div class="mv">${ex.sets}</div></div>
+        <div class="mitem"><div class="mk">Reps / Duration</div><div class="mv">${ex.reps}</div></div>
+      </div>
+      <div class="tip">${ex.tip}</div>
+      ${wtHTML}
+    </div>
+  </div>`;
+}
+
+/* ═══ DAY RENDERER ═══════════════════════════════════════════ */
+function renderDay(day){
+  const pg=document.getElementById('pg-'+day.id); if(!pg)return;
+  const c=cdb(); const done=!!c[day.id];
+  const typeCounts={k:0,s:0,t:0,x:0};
+  day.exercises.forEach(e=>typeCounts[e.type]++);
+  custdb().filter(e=>e.day===day.id).forEach(e=>typeCounts[e.type]=(typeCounts[e.type]||0)+1);
+  const badgesHTML=Object.entries(typeCounts).filter(([,n])=>n>0)
+    .map(([t,n])=>`<span class="tbadge ${TYPE_MAP[t].badge}">${n} ${TYPE_MAP[t].title.replace(/[🔵🔴🟢🟡] /,'')}</span>`).join('');
+  const existingSecs=[];
+  const secs=['k','s','t','x'].map(type=>{
+    const exs=[...day.exercises.filter(e=>e.type===type),...custdb().filter(e=>e.day===day.id&&e.type===type)];
+    if(!exs.length)return '';
+    existingSecs.push({type,count:exs.length});
+    return `<div class="sec-head" id="sec-${type}-${day.id}"><span class="sec-title">${TYPE_MAP[type].title}</span><span class="sec-cnt">${exs.length}</span></div>
+      <div class="grid">${exs.map(renderCard).join('')}</div>`;
+  }).join('');
+  const jumpNav=existingSecs.length>1?`<div class="sec-jumps">
+    ${existingSecs.map(({type,count})=>`<button class="sec-jump" onclick="document.getElementById('sec-${type}-${day.id}').scrollIntoView({behavior:'smooth',block:'start'})">${TYPE_MAP[type].title} <span style="opacity:.55">${count}</span></button>`).join('')}
+  </div>`:'';
+  pg.innerHTML=`
+    <div class="cycle-banner" id="cb-${day.id}"></div>
+    <div class="day-hdr">
+      <div class="day-icon">${day.icon}</div>
+      <div class="day-info">
+        <h2>Day ${day.num} — ${day.name}</h2>
+        <p>${day.desc}</p>
+        <div class="day-badges">${badgesHTML}</div>
+        ${done?`<div class="done-date">✓ Completed ${c[day.id]}</div>`:''}
+      </div>
+      <button class="done-btn ${done?'completed':''}" id="dbtn-${day.id}"
+        ${done?'':'data-did="'+day.id+'" onclick="markDayDone(this.dataset.did)"'}>${done?'✓ Completed':'Mark Day Complete'}</button>
+    </div>
+    ${jumpNav}
+    <div id="day-content-${day.id}" class="${done?'greyed':''}">${secs}</div>`;
+}
+
+/* ═══ COMPLETION ═════════════════════════════════════════════ */
+function markDayDone(dayId){
+  const c=cdb(); c[dayId]=new Date().toISOString().slice(0,10);
+  localStorage.setItem('completions',JSON.stringify(c));
+  syncCompletions();
+  renderDay(DAYS.find(d=>d.id===dayId));
+  renderTabs();
+  if(Object.keys(c).length===6){
+    document.querySelectorAll('.cycle-banner').forEach(b=>{
+      b.className='cycle-banner on';
+      b.innerHTML='<h3>🎉 Cycle Complete!</h3><p>All 6 days done. Starting a new cycle — great work!</p><button onclick="resetCycle()">Start New Cycle</button>';
+    });
+  }
+}
+
+/* ═══ WEIGHT SAVE ════════════════════════════════════════════ */
+function doSave(id){
+  const inp=document.getElementById('wi-'+id),btn=document.getElementById('wb-'+id),bl=document.getElementById('bl-'+id);
+  if(!inp?.value||+inp.value<=0){toast('Enter a weight first');return}
+  const r=saveW(id,inp.value),best=getBest(id);
+  btn.textContent='✓'; btn.classList.add('ok');
+  setTimeout(()=>{btn.textContent='Save';btn.classList.remove('ok')},1500);
+  bl.innerHTML=`Best: <b>${best} kg</b>${r?.pr?'<span class="pr-tag">New PR 🏆</span>':''}`;
+  toast(r?.pr?`New PR! ${r.prev} → ${best} kg`:`Saved ${best} kg`);
+  renderProgress();
+}
+
+/* ═══ TABS ═══════════════════════════════════════════════════ */
+let currentTab=localStorage.getItem('last_tab')||'d1';
+function renderTabs(){
+  const c=cdb();
+  const doneCount=Object.keys(c).length;
+  // Short display name for day tabs: strip secondary focus after '&' or trailing word
+  const shortName=d=>d.name.includes(' & ')?d.name.split(' & ')[0]:d.name.replace(/\s+\w+$/,'');
+  const dayTabs=DAYS.map(d=>{
+    const done=!!c[d.id];
+    return `<div class="tab ${currentTab===d.id?'on':''}" data-tid="${d.id}" onclick="switchTab(this.dataset.tid)">
+      <span class="tab-dayn">Day ${d.num}</span>
+      <span class="tab-name">${d.icon} ${shortName(d)}</span>
+      ${done?'<span class="tab-ck">✓</span>':''}
+    </div>`;
+  }).join('');
+  const utilDefs=[
+    {id:'prog',label:'📈 Progress'},
+    {id:'muscles',label:'💪 Muscles'},
+    {id:'admin',label:'⚙️ Settings'},
+    {id:'guide',label:'📖 Guide'},
+  ];
+  const utilTabs=utilDefs.map(t=>`
+    <div class="tab tab-util ${currentTab===t.id?'on':''}" data-tid="${t.id}" onclick="switchTab(this.dataset.tid)">
+      ${t.label}
+    </div>`).join('');
+  document.getElementById('tab-bar').innerHTML=dayTabs+'<div class="tab-div"></div>'+utilTabs;
+  // Subtitle: next-up indicator
+  const nextDay=DAYS.find(d=>!c[d.id]);
+  const sub=doneCount===0?'6-day cycle · 2× per week':
+    nextDay?`${doneCount}/6 done · Next: ${nextDay.icon} Day ${nextDay.num} — ${nextDay.name}`:'🎉 Cycle complete!';
+  document.getElementById('cycle-sub').textContent=sub;
+}
+function switchTab(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
+  document.getElementById('pg-'+id).classList.add('on');
+  currentTab=id;
+  localStorage.setItem('last_tab',id);
+  renderTabs();
+  if(id==='prog')renderProgress();
+  if(id==='muscles')renderMusclesPage();
+  if(id==='admin')renderCustomList();
+}
+
+/* ═══ PROGRESS ═══════════════════════════════════════════════ */
+function renderProgress(){
+  const all=DAYS.flatMap(d=>d.exercises).filter(e=>e.type==='s'||e.type==='k');
+  const d=wdb(),logged=all.filter(e=>d[e.id]?.best);
+  const c=cdb();
+  document.getElementById('prog-stats').innerHTML=`
+    <div class="stat-c"><div class="stat-n c1">${logged.length}</div><div class="stat-l">Exercises logged</div></div>
+    <div class="stat-c"><div class="stat-n c2">${Object.keys(c).length}/6</div><div class="stat-l">Days complete</div></div>
+    <div class="stat-c"><div class="stat-n c3">${Math.round(logged.length/all.length*100)}%</div><div class="stat-l">Tracked</div></div>
+    <div class="stat-c"><div class="stat-n c4">${logged.filter(e=>d[e.id].history?.length>1).length}</div><div class="stat-l">Progressing</div></div>`;
+  if(!logged.length){
+    document.getElementById('prog-tbl').innerHTML='<tr><td style="padding:24px;color:var(--t3)">No weights saved yet.</td></tr>';return;
+  }
+  document.getElementById('prog-tbl').innerHTML=`
+    <thead><tr><th>Exercise</th><th>Type</th><th>Best</th><th>Last</th><th>Sessions</th><th>History</th></tr></thead>
+    <tbody>${logged.map(e=>{
+      const r=d[e.id],last=r.history?.at(-1),hist=(r.history||[]).slice(-5).map(h=>h.w).join(' → ');
+      return `<tr><td>${e.name}</td><td><span class="type-pill ${TYPE_MAP[e.type].pill}">${TYPE_MAP[e.type].label}</span></td>
+        <td class="td-hi">${r.best} kg</td><td>${last?last.w+' kg':'—'}</td><td>${(r.history||[]).length}</td><td class="td-sm">${hist}</td></tr>`;
+    }).join('')}</tbody>`;
+}
+
+/* ═══ CROSS-DEVICE SYNC ══════════════════════════════════════ */
+function exportJSON(){
+  const vids={};
+  DAYS.flatMap(d=>d.exercises).forEach(e=>{ const v=getVid(e.id); if(v) vids[e.id]=v; });
+  const imgs={};
+  DAYS.flatMap(d=>d.exercises).forEach(e=>{ const i=getImg(e.id); if(i) imgs[e.id]=i; });
+  const data={weights:wdb(),completions:cdb(),customExercises:custdb(),videos:vids,images:imgs};
+  const a=Object.assign(document.createElement('a'),{
+    href:URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'})),
+    download:`tomas_gym_backup_${new Date().toISOString().slice(0,10)}.json`
+  });
+  a.click(); toast('Progress exported ✓');
+}
+function importJSON(input){
+  const file=input.files[0]; if(!file)return;
+  const r=new FileReader();
+  r.onload=e=>{
+    try{
+      const d=JSON.parse(e.target.result);
+      if(d.weights)   localStorage.setItem('gw3',JSON.stringify(d.weights));
+      if(d.completions) localStorage.setItem('completions',JSON.stringify(d.completions));
+      if(d.customExercises) localStorage.setItem('custom_ex',JSON.stringify(d.customExercises));
+      if(d.videos) Object.entries(d.videos).forEach(([id,v])=>localStorage.setItem('yt_vid_'+id,v));
+      if(d.images) Object.entries(d.images).forEach(([id,v])=>localStorage.setItem('img_'+id,v));
+      toast('Imported ✓ — reloading...'); setTimeout(()=>location.reload(),1000);
+    }catch{ toast('Invalid backup file — check the JSON') }
+  }; r.readAsText(file); input.value='';
+}
+
+/* ═══ ADMIN ══════════════════════════════════════════════════ */
+function addCustom(){
+  const name=document.getElementById('f-name').value.trim(); if(!name){toast('Name is required');return}
+  const ex={id:'cust-'+Date.now(),type:document.getElementById('f-type').value,name,
+    day:document.getElementById('f-day').value,sets:document.getElementById('f-sets').value||'3',
+    reps:document.getElementById('f-reps').value||'10',
+    mp:document.getElementById('f-mp').value.split(',').map(s=>s.trim()).filter(Boolean),
+    ms:document.getElementById('f-ms').value.split(',').map(s=>s.trim()).filter(Boolean),
+    tip:document.getElementById('f-tip').value||'Focus on form and control.',
+    yt:document.getElementById('f-yt').value||name+' exercise tutorial'};
+  const list=custdb(); list.push(ex); localStorage.setItem('custom_ex',JSON.stringify(list));
+  ['f-name','f-sets','f-reps','f-mp','f-ms','f-yt','f-tip'].forEach(i=>document.getElementById(i).value='');
+  renderCustomList(); DAYS.forEach(d=>renderDay(d)); renderTabs();
+  toast(`"${name}" added`);
+}
+function deleteCustom(id){
+  localStorage.setItem('custom_ex',JSON.stringify(custdb().filter(e=>e.id!==id)));
+  renderCustomList(); DAYS.forEach(d=>renderDay(d)); renderTabs(); toast('Removed');
+}
+function renderCustomList(){
+  const list=custdb();
+  document.getElementById('custom-count').textContent=list.length?`(${list.length})`:'';
+  document.getElementById('cust-list').innerHTML=list.length
+    ?list.map(e=>`<div class="cust-item"><div><div class="ci-name">${e.name}</div><div class="ci-meta">Day ${e.day.replace('d','')} · ${TYPE_MAP[e.type]?.label||e.type} · ${e.sets}×${e.reps}</div></div>
+      <button class="del-btn" data-eid="${e.id}" onclick="deleteCustom(this.dataset.eid)">Remove</button></div>`).join('')
+    :'<p style="font-size:13px;color:var(--t3)">No custom exercises yet.</p>';
+}
+
+/* ═══ UTILS ══════════════════════════════════════════════════ */
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;clearTimeout(t._t);t.classList.add('show');t._t=setTimeout(()=>t.classList.remove('show'),2500)}
+function exportCSV(){
+  const all=DAYS.flatMap(d=>d.exercises),d=wdb();
+  let c='Exercise,Type,Best (kg),Sessions,Last\n';
+  all.filter(e=>d[e.id]?.best).forEach(e=>{
+    const r=d[e.id],last=r.history?.at(-1)?.w||'';
+    c+=`"${e.name}",${TYPE_MAP[e.type].label},${r.best},${(r.history||[]).length},${last}\n`;
+  });
+  const a=Object.assign(document.createElement('a'),{href:URL.createObjectURL(new Blob([c],{type:'text/csv'})),download:'tomas_gym_progress.csv'});
+  a.click(); toast('Exported ✓');
+}
+function resetWeights(){if(confirm('Reset all saved weights?')){localStorage.removeItem('gw3');location.reload()}}
+function resetCycle(){
+  localStorage.removeItem('completions');
+  document.querySelectorAll('.cycle-banner').forEach(b=>{b.className='cycle-banner';b.innerHTML=''});
+  document.querySelectorAll('[id^="day-content-"]').forEach(c=>c.classList.remove('greyed'));
+  DAYS.forEach(d=>renderDay(d)); renderTabs(); toast('New cycle started!');
+}
+
+/* ═══ MUSCLES PAGE ═══════════════════════════════════════════ */
+const MD=[
+  {id:'neck',      name:'Neck',               kw:[/neck|scm/],
+   sh:[{v:'f',t:'e',cx:90,cy:57,rx:8,ry:10},{v:'b',t:'e',cx:90,cy:57,rx:8,ry:10}]},
+
+  {id:'traps',     name:'Trapezius',           kw:[/trap/],
+   sh:[
+     /* front — upper traps visible as two wedges at neck-shoulder junction */
+     {v:'f',t:'p',d:'M86,66C78,70 54,77 48,88C54,94 66,94 74,88C82,82 86,74 86,66Z'},
+     {v:'f',t:'p',d:'M94,66C102,70 126,77 132,88C126,94 114,94 106,88C98,82 94,74 94,66Z'},
+     /* back — full diamond from neck to mid-back */
+     {v:'b',t:'p',d:'M84,67Q90,70 96,67C116,76 140,90 144,110C132,124 108,146 90,152C72,146 48,124 36,110C40,90 64,76 84,67Z'}
+   ]},
+
+  {id:'chest',     name:'Chest',               kw:[/chest|pec/],
+   sh:[
+     {v:'f',t:'p',d:'M88,90C76,87 54,93 46,108C40,121 44,140 55,149C65,156 81,154 88,150Z'},
+     {v:'f',t:'p',d:'M92,90C104,87 126,93 134,108C140,121 136,140 125,149C115,156 99,154 92,150Z'}
+   ]},
+
+  {id:'fdelt',     name:'Front Deltoid',        kw:[/front delt/],
+   sh:[
+     {v:'f',t:'p',d:'M24,112C17,122 12,140 13,158C19,165 29,167 38,159C46,149 47,132 42,115C38,106 29,107 24,112Z'},
+     {v:'f',t:'p',d:'M156,112C163,122 168,140 167,158C161,165 151,167 142,159C134,149 133,132 138,115C142,106 151,107 156,112Z'}
+   ]},
+
+  {id:'sdelt',     name:'Side Deltoid',         kw:[/side delt|^shoulder/],
+   sh:[
+     {v:'f',t:'e',cx:13,cy:112,rx:8,ry:16},
+     {v:'f',t:'e',cx:167,cy:112,rx:8,ry:16}
+   ]},
+
+  {id:'rdelt',     name:'Rear Deltoid',         kw:[/rear delt|rotator|subscap/],
+   sh:[
+     {v:'b',t:'p',d:'M24,108C17,118 12,136 13,154C19,161 29,163 38,155C46,145 47,128 42,111C38,103 29,103 24,108Z'},
+     {v:'b',t:'p',d:'M156,108C163,118 168,136 167,154C161,161 151,163 142,155C134,145 133,128 138,111C142,103 151,103 156,108Z'}
+   ]},
+
+  {id:'biceps',    name:'Biceps',               kw:[/bicep|brachi/],
+   sh:[
+     {v:'f',t:'p',d:'M13,126C9,142 9,166 13,184C17,196 26,200 34,196C42,190 44,172 42,154C40,136 35,120 26,118C19,118 15,120 13,126Z'},
+     {v:'f',t:'p',d:'M167,126C171,142 171,166 167,184C163,196 154,200 146,196C138,190 136,172 138,154C140,136 145,120 154,118C161,118 165,120 167,126Z'}
+   ]},
+
+  {id:'triceps',   name:'Triceps',              kw:[/tricep/],
+   sh:[
+     {v:'b',t:'p',d:'M13,124C9,140 9,166 13,186C17,198 27,202 36,196C44,188 46,170 44,152C42,134 37,118 27,116C19,116 15,120 13,124Z'},
+     {v:'b',t:'p',d:'M167,124C171,140 171,166 167,186C163,198 153,202 144,196C136,188 134,170 136,152C138,134 143,118 153,116C161,116 165,120 167,124Z'}
+   ]},
+
+  {id:'forearms',  name:'Forearms',             kw:[/forearm|wrist/],
+   sh:[
+     {v:'f',t:'e',cx:22,cy:236,rx:11,ry:30},{v:'f',t:'e',cx:158,cy:236,rx:11,ry:30},
+     {v:'b',t:'e',cx:22,cy:236,rx:11,ry:30},{v:'b',t:'e',cx:158,cy:236,rx:11,ry:30}
+   ]},
+
+  {id:'lats',      name:'Lats',                 kw:[/\blat(?!eral)/],
+   sh:[
+     {v:'b',t:'p',d:'M38,112C30,128 26,158 30,186C33,202 43,220 59,226C63,222 65,212 62,192C59,172 54,148 50,126C46,112 42,110 38,112Z'},
+     {v:'b',t:'p',d:'M142,112C150,128 154,158 150,186C147,202 137,220 121,226C117,222 115,212 118,192C121,172 126,148 130,126C134,112 138,110 142,112Z'}
+   ]},
+
+  {id:'rhomboid',  name:'Rhomboids',            kw:[/rhom/],
+   sh:[{v:'b',t:'p',d:'M72,114L62,134L72,152L90,158L108,152L118,134L108,114L90,110Z'}]},
+
+  {id:'erectors',  name:'Erectors / Lower Back',kw:[/erect|lower back/],
+   sh:[
+     {v:'b',t:'e',cx:82,cy:186,rx:9,ry:34},
+     {v:'b',t:'e',cx:98,cy:186,rx:9,ry:34}
+   ]},
+
+  {id:'core',      name:'Core / Abs',           kw:[/\babs\b|core|deep core|lower abs/],
+   sh:[{v:'f',t:'p',d:'M76,154C73,170 73,194 76,220C78,232 84,238 90,238C96,238 102,232 104,220C107,194 107,170 104,154C100,149 80,149 76,154Z'}]},
+
+  {id:'obliques',  name:'Obliques',             kw:[/obliq|intercost/],
+   sh:[
+     {v:'f',t:'p',d:'M49,148C45,166 44,192 48,218C52,230 60,234 68,230C72,224 72,206 70,184C68,162 64,146 60,142Z'},
+     {v:'f',t:'p',d:'M131,148C135,166 136,192 132,218C128,230 120,234 112,230C108,224 108,206 110,184C112,162 116,146 120,142Z'}
+   ]},
+
+  {id:'hipflex',   name:'Hip Flexors',          kw:[/hip flex/],
+   sh:[
+     {v:'f',t:'e',cx:67,cy:228,rx:14,ry:12},
+     {v:'f',t:'e',cx:113,cy:228,rx:14,ry:12}
+   ]},
+
+  {id:'glutes',    name:'Glutes',               kw:[/glute|hip rot/],
+   sh:[
+     {v:'b',t:'p',d:'M46,238C40,250 40,267 50,278C59,287 71,287 79,278C87,267 86,250 78,240C72,230 52,230 46,238Z'},
+     {v:'b',t:'p',d:'M134,238C140,250 140,267 130,278C121,287 109,287 101,278C93,267 94,250 102,240C108,230 128,230 134,238Z'}
+   ]},
+
+  {id:'hamstrings',name:'Hamstrings',           kw:[/hamstring|knee flex/],
+   sh:[
+     {v:'b',t:'p',d:'M47,246C43,268 43,300 47,326C51,340 60,346 70,344C78,342 84,334 85,320C87,298 84,270 80,248C75,238 54,238 47,246Z'},
+     {v:'b',t:'p',d:'M133,246C137,268 137,300 133,326C129,340 120,346 110,344C102,342 96,334 95,320C93,298 96,270 100,248C105,238 126,238 133,246Z'}
+   ]},
+
+  {id:'quads',     name:'Quadriceps / VMO',     kw:[/quad|vmo|patellar/],
+   sh:[
+     {v:'f',t:'p',d:'M47,246C43,268 43,300 47,326C51,340 60,346 70,344C78,342 84,334 85,320C87,298 84,270 80,248C75,238 54,238 47,246Z'},
+     {v:'f',t:'p',d:'M133,246C137,268 137,300 133,326C129,340 120,346 110,344C102,342 96,334 95,320C93,298 96,270 100,248C105,238 126,238 133,246Z'}
+   ]},
+
+  {id:'adductors', name:'Adductors',            kw:[/adduct/],
+   sh:[
+     {v:'f',t:'p',d:'M74,248C70,270 70,300 74,322C78,334 84,338 87,324C89,304 87,274 83,252C81,242 77,242 74,248Z'},
+     {v:'f',t:'p',d:'M106,248C110,270 110,300 106,322C102,334 96,338 93,324C91,304 93,274 97,252C99,242 103,242 106,248Z'}
+   ]},
+
+  {id:'calves',    name:'Calves',               kw:[/calf|calves|achilles|plantar/],
+   sh:[
+     /* front — tibialis anterior */
+     {v:'f',t:'e',cx:64,cy:366,rx:12,ry:24},{v:'f',t:'e',cx:116,cy:366,rx:12,ry:24},
+     /* back — gastrocnemius diamond */
+     {v:'b',t:'p',d:'M50,348C46,364 47,382 54,394C60,402 68,404 74,398C80,390 82,372 80,354C76,340 54,338 50,348Z'},
+     {v:'b',t:'p',d:'M130,348C134,364 133,382 126,394C120,402 112,404 106,398C100,390 98,372 100,354C104,340 126,338 130,348Z'}
+   ]},
+];
+
+let _musCache=null;
+function computeMuscleCoverage(){
+  if(_musCache) return _musCache;
+  const cov={};
+  DAYS.forEach(day=>{
+    day.exercises.forEach(ex=>{
+      const proc=(muscles,level)=>{
+        muscles.forEach(m=>{
+          const n=m.toLowerCase();
+          MD.forEach(def=>{
+            if(def.kw.some(kw=>kw.test(n))){
+              if(!cov[def.id]) cov[def.id]={level:null,exercises:[]};
+              if(level==='primary'||cov[def.id].level!=='primary') cov[def.id].level=level;
+              if(!cov[def.id].exercises.find(e=>e.name===ex.name))
+                cov[def.id].exercises.push({name:ex.name,dayNum:day.num,type:ex.type});
+            }
+          });
+        });
+      };
+      proc(ex.mp,'primary'); proc(ex.ms||[],'secondary');
+    });
+  });
+  return (_musCache=cov);
+}
+
+function bodySilhouette(view){
+  const f='#eef0f3',s='#c5cad4',w='1.2';
+  const head=`<ellipse cx="90" cy="27" rx="19" ry="22" fill="${f}" stroke="${s}" stroke-width="${w}"/>`;
+  const neck=`<path d="M84,48C83,52 83,58 84,65Q90,68 96,65C97,58 97,52 96,48Q90,51 84,48Z" fill="${f}" stroke="${s}" stroke-width="${w}"/>`;
+  const torso=`<path d="M84,65Q90,68 96,65C108,65 120,69 130,75C144,83 152,95 154,110L156,152 155,188C153,208 148,222 136,230L120,236Q90,240 60,236L44,230C32,222 27,208 25,188L24,152 26,110C28,95 36,83 50,75C60,69 72,65 84,65Z" fill="${f}" stroke="${s}" stroke-width="${w}"/>`;
+  const lArm=`<path d="M26,110C18,120 13,138 12,158C11,176 15,196 22,204C27,209 35,209 40,204C45,195 46,178 45,158C44,138 40,118 35,106C32,105 28,106 26,110Z" fill="${f}" stroke="${s}" stroke-width="${w}"/>`;
+  const lFore=`<path d="M22,204C17,216 13,232 14,250C14,262 19,272 27,274C35,276 42,269 44,258C46,246 44,230 41,216C40,210 40,204 40,204C35,209 27,209 22,204Z" fill="${f}" stroke="${s}" stroke-width="${w}"/>`;
+  const rArm=`<path d="M154,110C162,120 167,138 168,158C169,176 165,196 158,204C153,209 145,209 140,204C135,195 134,178 135,158C136,138 140,118 145,106C148,105 152,106 154,110Z" fill="${f}" stroke="${s}" stroke-width="${w}"/>`;
+  const rFore=`<path d="M158,204C163,216 167,232 166,250C166,262 161,272 153,274C145,276 138,269 136,258C134,246 136,230 139,216C140,210 140,204 140,204C145,209 153,209 158,204Z" fill="${f}" stroke="${s}" stroke-width="${w}"/>`;
+  const lHand=`<ellipse cx="18" cy="282" rx="7" ry="10" fill="${f}" stroke="${s}" stroke-width="${w}"/>`;
+  const rHand=`<ellipse cx="162" cy="282" rx="7" ry="10" fill="${f}" stroke="${s}" stroke-width="${w}"/>`;
+  const lLeg=`<path d="M60,236C52,244 47,264 46,287C44,310 46,330 50,342C54,352 62,358 70,356C78,354 84,346 85,334C87,312 85,287 82,264C80,248 76,238 68,234Z" fill="${f}" stroke="${s}" stroke-width="${w}"/>`;
+  const rLeg=`<path d="M120,236C128,244 133,264 134,287C136,310 134,330 130,342C126,352 118,358 110,356C102,354 96,346 95,334C93,312 95,287 98,264C100,248 104,238 112,234Z" fill="${f}" stroke="${s}" stroke-width="${w}"/>`;
+  const lCalf=`<path d="M50,342C46,358 45,376 48,390C51,400 58,406 66,406C74,406 80,400 82,390C84,376 85,358 85,334C84,346 78,354 70,356C62,358 54,352 50,342Z" fill="${f}" stroke="${s}" stroke-width="${w}"/>`;
+  const rCalf=`<path d="M130,342C134,358 135,376 132,390C129,400 122,406 114,406C106,406 100,400 98,390C96,376 95,358 95,334C96,346 102,354 110,356C118,358 126,352 130,342Z" fill="${f}" stroke="${s}" stroke-width="${w}"/>`;
+  const lFoot=`<path d="M48,396C45,402 45,408 52,410C60,412 70,410 74,406C78,402 80,396 82,392C80,400 74,406 66,406C58,406 51,400 48,396Z" fill="${f}" stroke="${s}" stroke-width="${w}"/>`;
+  const rFoot=`<path d="M132,396C135,402 135,408 128,410C120,412 110,410 106,406C102,402 100,396 98,392C100,400 106,406 114,406C122,406 129,400 132,396Z" fill="${f}" stroke="${s}" stroke-width="${w}"/>`;
+  const base=head+neck+torso+lArm+lFore+rArm+rFore+lHand+rHand+lLeg+rLeg+lCalf+rCalf+lFoot+rFoot;
+  const frontDetail=`
+    <line x1="90" y1="76" x2="52" y2="84" stroke="${s}" stroke-width="1" opacity="0.55"/>
+    <line x1="90" y1="76" x2="128" y2="84" stroke="${s}" stroke-width="1" opacity="0.55"/>
+    <line x1="90" y1="88" x2="90" y2="152" stroke="${s}" stroke-width="0.8" opacity="0.4"/>
+    <line x1="78" y1="152" x2="102" y2="152" stroke="${s}" stroke-width="0.7" opacity="0.35"/>
+    <line x1="78" y1="166" x2="102" y2="166" stroke="${s}" stroke-width="0.7" opacity="0.35"/>
+    <line x1="78" y1="180" x2="102" y2="180" stroke="${s}" stroke-width="0.7" opacity="0.35"/>
+    <circle cx="90" cy="194" r="2.5" fill="none" stroke="${s}" stroke-width="0.9" opacity="0.45"/>
+    <ellipse cx="67" cy="336" rx="8" ry="5" fill="none" stroke="${s}" stroke-width="0.7" opacity="0.35"/>
+    <ellipse cx="113" cy="336" rx="8" ry="5" fill="none" stroke="${s}" stroke-width="0.7" opacity="0.35"/>`;
+  const backDetail=`
+    <line x1="90" y1="68" x2="90" y2="234" stroke="${s}" stroke-width="0.9" opacity="0.45"/>
+    <path d="M76,106Q68,126 70,150Q78,154 84,146Q88,130 82,106Z" fill="none" stroke="${s}" stroke-width="0.8" opacity="0.4"/>
+    <path d="M104,106Q112,126 110,150Q102,154 96,146Q92,130 98,106Z" fill="none" stroke="${s}" stroke-width="0.8" opacity="0.4"/>
+    <path d="M60,240Q90,252 120,240" fill="none" stroke="${s}" stroke-width="0.8" opacity="0.45"/>`;
+  return base+(view==='b'?backDetail:frontDetail);
+}
+
+function renderMusclesPage(){
+  const cov=computeMuscleCoverage();
+  const pri=MD.filter(d=>cov[d.id]?.level==='primary').length;
+  const sec=MD.filter(d=>cov[d.id]?.level==='secondary').length;
+  const tot=MD.length;
+
+  const F=(id)=>{ const c=cov[id]; return !c?'#dadce0':c.level==='primary'?'#34a853':'#a8d5b5'; };
+  const S=(id)=>{ const c=cov[id]; return !c?'#c0c4cb':c.level==='primary'?'#137333':'#5bb974'; };
+
+  function shape(s,id){
+    const a=`data-mid="${id}" class="m-rgn" fill="${F(id)}" stroke="${S(id)}" stroke-width="1.2" style="cursor:pointer"`;
+    return s.t==='e'?`<ellipse ${a} cx="${s.cx}" cy="${s.cy}" rx="${s.rx}" ry="${s.ry}"/>`
+                    :`<path ${a} d="${s.d}"/>`;
+  }
+  function figure(view){
+    return MD.flatMap(d=>d.sh.filter(s=>s.v===view).map(s=>shape(s,d.id))).join('');
+  }
+
+  document.getElementById('pg-muscles').innerHTML=`
+    <div class="mus-stats">
+      <div class="mus-stat"><span class="mus-num" style="color:#34a853">${pri}</span><span class="mus-lbl">Primary targeted</span></div>
+      <div class="mus-stat"><span class="mus-num" style="color:#5bb974">${sec}</span><span class="mus-lbl">Secondary targeted</span></div>
+      <div class="mus-stat"><span class="mus-num" style="color:#9aa0a6">${tot-pri-sec}</span><span class="mus-lbl">Not in program</span></div>
+      <div class="mus-stat"><span class="mus-num">${Math.round((pri+sec)/tot*100)}%</span><span class="mus-lbl">Total coverage</span></div>
+    </div>
+    <div class="mus-legend">
+      <div class="mus-leg-item"><div class="mus-swatch" style="background:#34a853"></div>Primary muscle</div>
+      <div class="mus-leg-item"><div class="mus-swatch" style="background:#a8d5b5"></div>Secondary muscle</div>
+      <div class="mus-leg-item"><div class="mus-swatch" style="background:#dadce0"></div>Not targeted</div>
+      <span style="font-size:11px;color:var(--t3);margin-left:4px">Tap a muscle to see exercises</span>
+    </div>
+    <div class="mus-wrap">
+      <div class="mus-view">
+        <div class="mus-label">FRONT</div>
+        <svg viewBox="0 0 180 415" class="mus-svg">${bodySilhouette('f')}${figure('f')}</svg>
+      </div>
+      <div class="mus-view">
+        <div class="mus-label">BACK</div>
+        <svg viewBox="0 0 180 415" class="mus-svg">${bodySilhouette('b')}${figure('b')}</svg>
+      </div>
+    </div>
+    <div class="mus-info" id="mus-info">
+      <div class="mus-info-hint">👆 Tap any highlighted muscle to see which exercises target it</div>
+    </div>`;
+
+  document.querySelectorAll('.m-rgn').forEach(el=>{
+    el.addEventListener('click',()=>showMuscleInfo(el.dataset.mid));
+  });
+}
+
+function showMuscleInfo(mid){
+  const def=MD.find(d=>d.id===mid); if(!def) return;
+  const cov=computeMuscleCoverage();
+  const c=cov[mid];
+  const panel=document.getElementById('mus-info'); if(!panel) return;
+  const badge=c?`<span class="mus-badge ${c.level==='primary'?'pri':'sec'}">${c.level==='primary'?'Primary':'Secondary'}</span>`:'<span class="mus-badge sec">Not targeted</span>';
+  let exHtml='<div style="font-size:13px;color:var(--t3);margin-top:4px">No exercises target this muscle in the current program.</div>';
+  if(c?.exercises?.length){
+    exHtml=`<div class="mus-exlist">${c.exercises.map(e=>`
+      <div class="mus-ex-row">
+        <span class="type-pill ${TYPE_MAP[e.type]?.pill||''}">${TYPE_MAP[e.type]?.label||e.type}</span>
+        <span>Day ${e.dayNum} — <b>${e.name}</b></span>
+      </div>`).join('')}</div>`;
+  }
+  panel.innerHTML=`<div class="mus-info-name">${def.name} ${badge}</div>${exHtml}`;
+  panel.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+/* ═══ FIREBASE SYNC ══════════════════════════════════════════ */
+let _db=null, _auth=null, _uid=null, _listening=false;
+
+function loadFirebaseConfig(){
+  try{ return JSON.parse(localStorage.getItem('fb_cfg')||'null'); }catch{ return null; }
+}
+function saveFirebaseConfig(){
+  const raw=document.getElementById('fb-cfg-input').value.trim();
+  try{
+    // Accept either raw object notation or JSON
+    const cfg=Function('return ('+raw+')')();
+    if(!cfg.apiKey||!cfg.databaseURL) throw new Error('Missing apiKey or databaseURL');
+    localStorage.setItem('fb_cfg',JSON.stringify(cfg));
+    document.getElementById('firebase-setup-card').style.display='none';
+    toast('Firebase config saved — sign in now ✓');
+    initFirebase(cfg);
+  }catch(e){ alert('Could not parse config: '+e.message+'\n\nMake sure databaseURL is included.'); }
+}
+function showFirebaseSetup(){
+  document.getElementById('firebase-setup-card').style.display='block';
+  document.getElementById('firebase-setup-card').scrollIntoView({behavior:'smooth'});
+}
+
+function initFirebase(cfg){
+  if(typeof firebase==='undefined'){ setTimeout(()=>initFirebase(cfg),150); return; }
+  try{
+    if(firebase.apps.length===0) firebase.initializeApp(cfg);
+    _auth=firebase.auth();
+    _db=firebase.database();
+    _auth.getRedirectResult().catch(()=>{});
+    _auth.onAuthStateChanged(user=>{
+      _uid=user?user.uid:null;
+      renderAuthBtn(user);
+      if(user && !_listening){ attachFirebaseListener(); }
+      if(!user){ _listening=false; }
+    });
+  }catch(e){ console.warn('Firebase init error:',e); }
+}
+
+function signInGoogle(){
+  if(!_auth){
+    const btn=document.getElementById('gate-signin-btn');
+    if(btn) btn.textContent='Connecting…';
+    setTimeout(()=>{
+      if(btn) btn.innerHTML='<svg width="20" height="20" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 6.29C4.672 4.163 6.656 3.58 9 3.58z"/></svg> Continue with Google';
+      signInGoogle();
+    }, 500);
+    return;
+  }
+  const provider=new firebase.auth.GoogleAuthProvider();
+  const hint=document.getElementById('gate-setup-hint');
+  // Try popup first — on mobile this opens a new tab (not blocked).
+  // Fall back to redirect only if popup is explicitly blocked.
+  _auth.signInWithPopup(provider).catch(e=>{
+    if(e.code==='auth/popup-blocked'||e.code==='auth/popup-closed-by-user'){
+      // Popup blocked — fall back to redirect
+      _auth.signInWithRedirect(provider).catch(e2=>{
+        if(hint) hint.innerHTML=`<span style="color:#ea4335">Error: ${e2.message}</span>`;
+      });
+    } else {
+      if(hint) hint.innerHTML=`<span style="color:#ea4335">Error: ${e.message}</span>`;
+    }
+  });
+}
+function signOut(){
+  _auth?.signOut(); toast('Signed out');
+}
+
+const ALLOWED_EMAIL='tomas002210@gmail.com';
+
+function renderAuthBtn(user){
+  const gate=document.getElementById('login-gate');
+  const wrap=document.getElementById('auth-btn-wrap');
+  if(user){
+    if(user.email!==ALLOWED_EMAIL){
+      _auth.signOut();
+      if(gate){ gate.style.display='flex'; }
+      const hint=document.getElementById('gate-setup-hint');
+      if(hint) hint.innerHTML='<span style="color:#ea4335">Access denied.</span>';
+      if(wrap) wrap.innerHTML='';
+      return;
+    }
+    // Hide the login gate
+    if(gate) gate.style.display='none';
+    if(wrap) wrap.innerHTML=`<div class="auth-chip" onclick="signOut()" title="Signed in as ${user.email} — click to sign out">
+      <img src="${user.photoURL||''}" onerror="this.style.display='none'">
+      <div class="auth-chip-dot"></div>
+      <span>${user.displayName?.split(' ')[0]||'Synced'}</span>
+    </div>`;
+    const sb=document.getElementById('sync-body');
+    if(sb) sb.innerHTML=`<p style="font-size:13px;color:var(--t2);margin-bottom:8px">✅ Syncing as <b>${user.email}</b>. All progress saves automatically across every device.</p>
+      <button class="btn-outline" onclick="signOut()">Sign out</button>`;
+  } else {
+    // Show the login gate
+    if(gate) gate.style.display='flex';
+    if(wrap) wrap.innerHTML='';
+  }
+}
+
+function attachFirebaseListener(){
+  if(!_db||!_uid||_listening) return;
+  _listening=true;
+  _db.ref('users/'+_uid).once('value', snap=>{
+    const d=snap.val()||{};
+    // On first sign-in: push local data up to Firebase so nothing is lost
+    const localWeights=wdb(); const localCompletions=cdb();
+    const localVideos={};
+    DAYS.flatMap(day=>day.exercises).forEach(e=>{
+      const v=getVid(e.id); if(v) localVideos[e.id]=v;
+    });
+    // Merge: Firebase wins for keys it already has, local fills the gaps
+    const mergedWeights=Object.assign({},localWeights,d.weights||{});
+    const mergedCompletions=Object.assign({},localCompletions,d.completions||{});
+    const mergedVideos=Object.assign({},localVideos,d.videos||{});
+    // Save merged data to localStorage
+    localStorage.setItem('gw3',JSON.stringify(mergedWeights));
+    localStorage.setItem('completions',JSON.stringify(mergedCompletions));
+    Object.keys(mergedVideos).forEach(k=>localStorage.setItem('yt_vid_'+k,mergedVideos[k]));
+    // Push merged data back to Firebase
+    _db.ref('users/'+_uid).set({weights:mergedWeights,completions:mergedCompletions,videos:mergedVideos}).catch(()=>{});
+    // Now attach live listener for ongoing sync
+    _db.ref('users/'+_uid).on('value', snap2=>{
+      const d2=snap2.val(); if(!d2) return;
+      if(d2.weights) localStorage.setItem('gw3',JSON.stringify(d2.weights));
+      if(d2.completions) localStorage.setItem('completions',JSON.stringify(d2.completions));
+      if(d2.videos) Object.keys(d2.videos).forEach(k=>localStorage.setItem('yt_vid_'+k,d2.videos[k]));
+      DAYS.forEach(day=>renderDay(day));
+      renderTabs();
+      if(currentTab==='prog') renderProgress();
+    });
+  });
+}
+
+// Wrapped write helpers — write to localStorage AND Firebase if signed in
+function fbWrite(path,value){
+  if(_db&&_uid) _db.ref('users/'+_uid+'/'+path).set(value).catch(()=>{});
+}
+function syncWeights(){
+  const d=wdb(); fbWrite('weights',d);
+}
+function syncCompletions(){
+  const c=cdb(); fbWrite('completions',c);
+}
+function syncVideo(id,vid){
+  fbWrite('videos/'+id,vid);
+}
+
+/* ═══ INIT ═══════════════════════════════════════════════════ */
+// Migrate: remove any old-format video data (search queries, not valid 11-char IDs)
+(function migrateVideoData(){
+  const validId=/^[a-zA-Z0-9_-]{11}$/;
+  DAYS.flatMap(d=>d.exercises).forEach(e=>{
+    const key='yt_vid_'+e.id;
+    const val=localStorage.getItem(key);
+    if(val && !validId.test(val.trim())) localStorage.removeItem(key);
+  });
+})();
+
+// Built-in Firebase config (always available, no setup needed)
+const _builtInCfg={
+  apiKey:"AIzaSyA0Nl4bedpsKLuiOqpKP9NKAcC6qT8DQxQ",
+  authDomain:"gym-program-4da29.firebaseapp.com",
+  projectId:"gym-program-4da29",
+  storageBucket:"gym-program-4da29.firebasestorage.app",
+  messagingSenderId:"298773298544",
+  appId:"1:298773298544:web:50610f12d627ea60ed63b5",
+  databaseURL:"https://gym-program-4da29-default-rtdb.firebaseio.com"
+};
+const _savedCfg=loadFirebaseConfig()||_builtInCfg;
+initFirebase(_savedCfg);
+
+DAYS.forEach(d=>renderDay(d));
+renderTabs();
+// Restore last active tab (default d1 already has .on from HTML)
+if(currentTab!=='d1') switchTab(currentTab);
+
+// Register service worker for PWA (offline support + installability)
+if('serviceWorker' in navigator && location.protocol!=='file:'){
+  navigator.serviceWorker.register('/Gym/sw.js',{scope:'/Gym/'}).catch(()=>{});
+}
+</script>
+</body>
+</html>
