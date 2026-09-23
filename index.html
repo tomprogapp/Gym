@@ -455,7 +455,7 @@ try{ if(localStorage.getItem('auth_ok')) document.getElementById('login-gate').s
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION='2026.09.23c';  // bump on every release — shown at the bottom of Settings
+const APP_VERSION='2026.09.23d';  // bump on every release — shown at the bottom of Settings
 /* ═══ DATA ═══════════════════════════════════════════════════
    type: k=prehab  t=tennis & power  s=strength  o=optional add-on  x=stretch
    mp=primary muscles  ms=secondary muscles
@@ -529,6 +529,22 @@ const RETIRED=[
   ['dead-bug','s','Dead Bug'],['tke-d6','k','Terminal Knee Extension (Day 6)'],['monster-walk','k','Monster Walk'],
   ['db-sh-d6','s','Dumbbell Shoulder Press'],['pullup-d6','s','Pull-Up / Lat Pulldown (Day 6)'],
 ].map(([id,type,name])=>({id,type,name,retired:true}));
+// Built-in tutorial videos (YouTube ids, all checked via oEmbed). A video the user
+// sets on a card overrides these; defaults are never written to storage or Firebase.
+const DEFAULT_VIDS={
+  'tke':'7xG3MeoLjC0','span-squat':'mik90mAS6fU','copenhagen':'YRRnnZsRs9U',
+  'sl-balance':'J5F2GbSxTvQ','sl-balance-b':'J5F2GbSxTvQ','lat-bound':'7zi47B5sgsI',
+  'med-rot':'NP2e1Szrj28','sh-ext-rot':'ZN9U7gj5N5Y','bar-squat':'8PMjqgR8Wa8',
+  'flat-bench':'5Y3VZsLb1Ys','db-row':'roCP6wCXPqo','nordic-ham':'_e9vFU9-tkc',
+  'seated-calf':'ORY-ke6vcgk','pallof':'dBAmQ9bx3JA','hip-thrust':'Zp26q4BY5HE',
+  'lat-raise':'Y29xKcze8Ik','hip-flex-str':'gqoPYLUgP48','cross-sh':'WaR_T0aUoew',
+  'rev-nordic':'PvJDjcfZe1c','lat-band':'5wUk8wQNUT8','wrist-ecc':'gsKGbqA9aNo',
+  'split-step':'XR83yXLla8w','med-ball-oh':'EsAhU1jHpiQ','deadlift':'VL5Ab0T07e4',
+  'bulg-split':'hiLF_pF3EJM','bar-ohp':'GlyABLsPk-Q','pulldown':'SALxEARiMkw',
+  'calf-d6':'1E79pymJngo','face-pull':'eTCBSFlCJ_s','woodchop-fh':'SEljAHXw01E',
+  'ab-wheel':'ikkOq5mHaho','inc-curl':'1gCfaEWk_Ds','dips':'yN6Q1UI_xkE',
+  'thor-rot':'rDviWORCWEw','pigeon':'46phRH_09yM',
+};
 // Custom exercises were assigned to the old Days 1–6
 const OLD_DAY_MAP={d1:'sa',d3:'sa',d5:'sa',d2:'sb',d4:'sb',d6:'sb'};
 
@@ -558,7 +574,8 @@ const cdb    =()=>{ try{const c=JSON.parse(localStorage.getItem('completions')||
 // Firebase drops empty arrays, so restore mp/ms defaults on read
 const custdb =()=>{ try{return JSON.parse(localStorage.getItem('custom_ex')||'[]').map(e=>({...e,day:OLD_DAY_MAP[e.day]||e.day,mp:e.mp||[],ms:e.ms||[]}))}catch{return[]} };
 const allEx  =()=>[...DAYS.flatMap(d=>d.exercises),...custdb()];
-const getVid =id=>localStorage.getItem('yt_vid_'+id);
+const getUserVid=id=>localStorage.getItem('yt_vid_'+id);  // only what the user set (this is what syncs)
+const getVid =id=>getUserVid(id)||DEFAULT_VIDS[id]||null;
 const setVid =(id,v)=>localStorage.setItem('yt_vid_'+id,v);
 const getImg =id=>localStorage.getItem('img_'+id);
 
@@ -898,7 +915,7 @@ function renderProgress(){
 /* ═══ CROSS-DEVICE SYNC ══════════════════════════════════════ */
 function exportJSON(){
   const vids={};
-  DAYS.flatMap(d=>d.exercises).forEach(e=>{ const v=getVid(e.id); if(v) vids[e.id]=v; });
+  DAYS.flatMap(d=>d.exercises).forEach(e=>{ const v=getUserVid(e.id); if(v) vids[e.id]=v; });
   const imgs={};
   DAYS.flatMap(d=>d.exercises).forEach(e=>{ const i=getImg(e.id); if(i) imgs[e.id]=i; });
   const data={weights:wdb(),completions:cdb(),customExercises:custdb(),videos:vids,images:imgs};
@@ -1339,7 +1356,7 @@ function attachFirebaseListener(){
     const firstMerge=localStorage.getItem('fb_merged')!==_uid;
     if(firstMerge||localStorage.getItem('fb_dirty')){
       const localVideos={};
-      allEx().forEach(e=>{ const v=getVid(e.id); if(v) localVideos[e.id]=v; });
+      allEx().forEach(e=>{ const v=getUserVid(e.id); if(v) localVideos[e.id]=v; });
       const cloudCustom=Array.isArray(d.custom)?d.custom:Object.values(d.custom||{});
       const merged={
         weights:mergeWeights(d.weights||{},wdb()),
