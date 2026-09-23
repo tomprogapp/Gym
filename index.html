@@ -311,7 +311,7 @@ body{background:var(--page);color:var(--t1);font-family:"Google Sans",Roboto,-ap
       <div class="dots"><div class="dot d1"></div><div class="dot d2"></div><div class="dot d3"></div><div class="dot d4"></div></div>
       <span class="logo-txt">Tomas Gym Program</span>
     </div>
-    <span class="hdr-sub" id="cycle-sub">A/B split · 2× per week</span>
+    <span class="hdr-sub" id="cycle-sub">A/B/C · 3× per week</span>
     <div id="auth-btn-wrap"></div>
   </div>
   <div class="tabs" id="tab-bar"></div>
@@ -341,6 +341,7 @@ try{ if(localStorage.getItem('auth_ok')) document.getElementById('login-gate').s
 
 <div id="pg-sa" class="page on"></div>
 <div id="pg-sb" class="page"></div>
+<div id="pg-sc" class="page"></div>
 
 <!-- PROGRESS -->
 <div id="pg-prog" class="page">
@@ -389,7 +390,7 @@ try{ if(localStorage.getItem('auth_ok')) document.getElementById('login-gate').s
       <div class="ff"><label class="fl">Name *</label><input class="fi" id="f-name" placeholder="e.g. Box Jump"></div>
       <div class="ff"><label class="fl">Session *</label>
         <select class="fs" id="f-day">
-          <option value="sa">Session A – Squat & Push</option><option value="sb">Session B – Hinge & Pull</option>
+          <option value="sa">Session A – Squat & Push</option><option value="sb">Session B – Hinge & Pull</option><option value="sc">Session C – Single-Leg & Core</option>
         </select></div>
       <div class="ff"><label class="fl">Type *</label>
         <select class="fs" id="f-type"><option value="k">🔵 Knee Prehab</option><option value="t">🟢 Tennis & Power</option><option value="s">🔴 Strength</option><option value="o">➕ Optional</option><option value="x">🟡 Mobility</option></select></div>
@@ -412,11 +413,11 @@ try{ if(localStorage.getItem('auth_ok')) document.getElementById('login-gate').s
 <!-- GUIDE -->
 <div id="pg-guide" class="page">
   <div class="g-card"><div class="g-head">Weekly structure</div><div class="g-rules">
-    <div class="rule-item"><div class="rdot"></div>Two full-body sessions per week, alternating A and B, at least 48 hours apart — e.g. Mon A + Thu B, or Tue A + Fri B.</div>
-    <div class="rule-item"><div class="rdot"></div>Every major muscle is trained about twice a week, and every heavy lift once a week — frequent enough to keep progressing.</div>
-    <div class="rule-item"><div class="rdot"></div>Order: 🔵 knee prehab & warm-up → 🟢 tennis power (while fresh) → 🔴 strength → ➕ optional add-ons if time → 🟡 mobility. The optional section starts with extra injury prevention (shoulder, ankle, groin, elbow) — prioritise those over the curls and raises.</div>
-    <div class="rule-item"><div class="rdot"></div>Superset the paired lifts (bench + row, press + pull-up) to keep each session around 60–70 min.</div>
-    <div class="rule-item"><div class="rdot"></div>Once both sessions are done the week resets automatically the next day. To add a tutorial video, tap "+ Add Tutorial Video" on any card.</div>
+    <div class="rule-item"><div class="rdot"></div>Three full-body sessions per week — A, B, C — with a rest day between, e.g. Mon A · Wed B · Fri C. Each takes about an hour.</div>
+    <div class="rule-item"><div class="rdot"></div>Every major muscle is trained about twice a week, every heavy lift once a week, and the key knee and tennis drills 2× per week.</div>
+    <div class="rule-item"><div class="rdot"></div>Order: 🔵 knee prehab & warm-up → 🟢 tennis power (while fresh) → 🔴 strength → 🟡 mobility.</div>
+    <div class="rule-item"><div class="rdot"></div>Superset the paired exercises (the tip on each card says which) to keep each session around an hour.</div>
+    <div class="rule-item"><div class="rdot"></div>Once all sessions are done the week resets automatically the next day. To add a tutorial video, tap "+ Add Tutorial Video" on any card.</div>
   </div></div>
   <div class="g-card"><div class="g-head">Effort & rest</div><div class="g-rules">
     <div class="rule-item"><div class="rdot"></div>Stop 1–3 reps short of failure on most sets — go to failure only occasionally, and never on squats or deadlifts.</div>
@@ -437,14 +438,14 @@ try{ if(localStorage.getItem('auth_ok')) document.getElementById('login-gate').s
     <div class="rule-item"><div class="rdot"></div><b>Off-season</b> (current default): 3–4 sets per exercise, push progression.</div>
     <div class="rule-item"><div class="rdot"></div><b>In-season</b>: drop to 2 sets per exercise but keep the weights — this maintains strength with less fatigue.</div>
     <div class="rule-item"><div class="rdot"></div>No heavy lower-body work (squat, deadlift, Nordics, split squats) within 48 h before a match.</div>
-    <div class="rule-item"><div class="rdot"></div>Tournament weeks: one session only (A or B) at reduced sets. No scheduled deloads — take an easy week only when run down or carrying a niggle.</div>
+    <div class="rule-item"><div class="rdot"></div>Busy match weeks: drop to 2 sessions (A + B), or 1 during tournaments, at reduced sets. No scheduled deloads — take an easy week only when run down or carrying a niggle.</div>
   </div></div>
   <div class="g-card"><div class="g-head">Nutrition & recovery</div>
     <div class="nutr-grid">
       <div class="nc"><div class="nc-k">Daily protein</div><div class="nc-v" style="color:var(--blue)">1.6–2.2 g/kg</div><div class="nc-n">Spread across 3–5 meals. Chicken, fish, eggs, dairy, whey.</div></div>
       <div class="nc"><div class="nc-k">Creatine</div><div class="nc-v" style="color:var(--green)">3–5 g/day</div><div class="nc-n">Every day — even rest days. Timing doesn't matter.</div></div>
       <div class="nc"><div class="nc-k">Sleep</div><div class="nc-v" style="color:var(--red)">7–9 hours</div><div class="nc-n">The most important recovery tool you have.</div></div>
-      <div class="nc"><div class="nc-k">Session spacing</div><div class="nc-v" style="color:var(--yellow)">48 h+</div><div class="nc-n">Mon + Thu · Tue + Fri · Wed + Sat</div></div>
+      <div class="nc"><div class="nc-k">Session spacing</div><div class="nc-v" style="color:var(--yellow)">1 day+</div><div class="nc-n">Mon · Wed · Fri or Tue · Thu · Sat</div></div>
     </div>
   </div>
 </div>
@@ -455,7 +456,7 @@ try{ if(localStorage.getItem('auth_ok')) document.getElementById('login-gate').s
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION='2026.09.23e';  // bump on every release — shown at the bottom of Settings
+const APP_VERSION='2026.09.23f';  // bump on every release — shown at the bottom of Settings
 /* ═══ DATA ═══════════════════════════════════════════════════
    type: k=prehab  t=tennis & power  s=strength  o=optional add-on  x=stretch
    mp=primary muscles  ms=secondary muscles
@@ -465,55 +466,61 @@ const E=(id,type,name,sets,reps,mp,ms,tip,yt)=>({id,type,name,sets,reps,mp,ms,ti
 const NW=e=>(e.noWt=true,e);  // bodyweight / isometric → no weight box
 
 const DAYS=[
- {id:'sa',num:'A',name:'Squat & Push',icon:'🅰️',
-  desc:'Quads · Chest · Back · Hamstrings · Rotational power · Shoulder health',exercises:[
-  // ── Prehab / warm-up ─────────────────────────────────────
-  NW(E('tke','k','Terminal Knee Extension','2','15/leg',['Quads'],['Knee'],'Band behind the knee — straighten fully and squeeze the quad hard at lockout. Low-load warm-up that primes the knee before squatting.','terminal knee extension band exercise form')),
+ {id:'sa',num:'A',name:'Squat & Push',icon:'🦵',
+  desc:'Quads · Chest · Back · Rotational power · Shoulder health · ~60 min',exercises:[
+  // ── Knee prehab / warm-up ────────────────────────────────
   NW(E('span-squat','k','Spanish Squat (band)','3','30–45 sec',['Patellar Tendon','Quads'],['Glutes'],'Heavy band around a fixed post behind the knees, sit back to a 60–90° knee bend and hold. Isometric patellar tendon loading — keep it pain-free (≤3/10).','spanish squat band exercise form')),
+  NW(E('tke','k','Terminal Knee Extension','2','15/leg',['Quads'],['Knee'],'Band behind the knee — straighten fully and squeeze the quad hard at lockout. Low-load warm-up that primes the knee before squatting.','terminal knee extension band exercise form')),
   // ── Tennis & power ───────────────────────────────────────
   NW(E('lat-bound','t','Single-Leg Lateral Bound','3','5/side',['Glute Med','Quads'],['Calves','Core'],'Explode sideways off one leg, stick the landing on the other for 2 sec. Quality over quantity — full rest between sets. Trains the push-off for wide balls.','single leg lateral bound plyometric exercise')),
   E('med-rot','t','Medicine Ball Rotational Wall Throw','3','6/side',['Obliques','Core'],['Glutes','Shoulders'],'Side-on to the wall, load the back hip and throw with full rotation — hips lead, arms follow. Max intent every rep; log the ball weight.','medicine ball rotational throw wall gym'),
   // ── Strength ─────────────────────────────────────────────
-  E('bar-squat','s','Barbell Back Squat','4','5–8',['Quads','Glutes'],['Hamstrings','Adductors','Core'],'Bar on upper traps, brace hard, break at hips and knees together — reach parallel or below. Trained every week now; add weight when all sets reach 8.','barbell back squat proper form tutorial'),
+  E('bar-squat','s','Barbell Back Squat','4','5–8',['Quads','Glutes'],['Hamstrings','Adductors','Core'],'Bar on upper traps, brace hard, break at hips and knees together — reach parallel or below. Add weight when all sets reach 8.','barbell back squat proper form tutorial'),
   E('flat-bench','s','Flat Dumbbell Bench Press','3','8–12',['Chest'],['Front Delt','Triceps'],'Superset with the row. Full range — deep stretch at the bottom, press to nearly locked.','flat dumbbell bench press proper form'),
   E('db-row','s','Dumbbell / Barbell Row','3','8–12',['Lats','Rhomboids'],['Biceps','Rear Delt'],'Superset with the bench. Full stretch at the bottom, drive the elbow to the hip and squeeze the shoulder blade.','dumbbell bent over row proper form'),
-  E('nordic-ham','s','Nordic Hamstring Curl','3','4–6',['Hamstrings'],['Glutes','Calves'],'Feet anchored (partner, pad under a loaded barbell, or machine). Lower as slowly as you can, catch with your hands, push back up. The strongest evidence of any exercise for preventing hamstring strains — use a band for assistance at first.','nordic hamstring curl proper form progression'),
-  E('seated-calf','s','Seated Calf Raise','3','12–15 (3 sec down)',['Calves','Soleus'],['Achilles'],'Knee bent 90° targets the soleus — the main Achilles tendon loader. Slow lowering, pause at the bottom.','seated calf raise soleus achilles tendon exercise'),
-  E('pallof','s','Pallof Press','2','10–12/side',['Core','Obliques'],['Shoulders'],'Cable at chest height — press out and hold 2 sec, resisting rotation completely.','pallof press anti rotation core'),
-  // ── Optional add-ons ─────────────────────────────────────
-  E('sh-ext-rot','o','Cable External Rotation at 90° (slow lowering)','2','12–15/side',['Rotator Cuff'],['Rear Delt'],'Elbow at shoulder height and bent 90° — rotate up briskly, lower over 3 sec. This is the serve position: eccentric external-rotation strength is what decelerates the arm after contact.','cable external rotation 90 degrees shoulder exercise'),
-  NW(E('sl-balance','o','Single-Leg Balance','2','30 sec/side',['Ankle Stabilisers','Calves'],['Glute Med','Core'],'Stand on one leg, slight knee bend. Progress: eyes closed → soft pad → catch and throw a ball. The best-supported way to prevent ankle sprains.','single leg balance ankle proprioception exercise')),
-  E('hip-thrust','o','Hip Thrust','2','10–15',['Glutes','Hamstrings'],['Core'],'Barbell across the hips, drive through the heels — squeeze the glutes hard at full extension for 1 sec.','barbell hip thrust glute tutorial'),
-  E('lat-raise','o','Lateral Raise','2','12–20',['Side Delt'],['Traps'],'Slight forward lean, lead with the elbows. Add reps before adding weight — small jumps only.','lateral raise side deltoid tutorial'),
+  E('seated-calf','s','Seated Calf Raise','3','12–15 (3 sec down)',['Calves','Soleus'],['Achilles'],'Superset with external rotation. Knee bent 90° targets the soleus — the main Achilles tendon loader. Slow lowering, pause at the bottom.','seated calf raise soleus achilles tendon exercise'),
+  E('sh-ext-rot','s','Cable External Rotation at 90° (slow lowering)','2','12–15/side',['Rotator Cuff'],['Rear Delt'],'Superset with calf raises. Elbow at shoulder height and bent 90° — rotate up briskly, lower over 3 sec. The serve position: eccentric external-rotation strength decelerates the arm after contact.','cable external rotation 90 degrees shoulder exercise'),
   // ── Mobility ─────────────────────────────────────────────
   E('hip-flex-str','x','Kneeling Hip Flexor Stretch','1','45 sec/side',['Hip Flexors'],['Quads'],'Tuck the pelvis under before leaning forward — feel it in the front of the hip, not the lower back.','kneeling hip flexor stretch tutorial'),
   E('cross-sh','x','Cross-Body Shoulder Stretch','1','40 sec/side',['Rear Delt','Rotator Cuff'],['Upper Back'],'Pull the arm across the chest, keep the shoulder blade down — stretches the back of the shoulder, which tightens in tennis players.','cross body shoulder stretch tutorial'),
  ]},
- {id:'sb',num:'B',name:'Hinge & Pull',icon:'🅱️',
-  desc:'Posterior chain · Shoulders · Lats · Reactive power · Core',exercises:[
-  // ── Prehab / warm-up ─────────────────────────────────────
+ {id:'sb',num:'B',name:'Hinge & Pull',icon:'🏋️',
+  desc:'Posterior chain · Shoulders · Lats · Reactive & serve power · ~60 min',exercises:[
+  // ── Knee prehab / warm-up ────────────────────────────────
   NW(E('rev-nordic','k','Reverse Nordic Curl','2','6–8',['Quads'],['Patellar Tendon','Hip Flexors'],'Kneel upright, lean back slowly keeping a straight line from knees to head, return under control. Trains the quads in a lengthened position for knee and patellar tendon resilience — shorten the range if the knee complains.','reverse nordic curl exercise form')),
   NW(E('lat-band','k','Lateral Band Walk','2','15 steps/way',['Glute Med'],['Quads','Adductors'],'Band above the knees or at the ankles, hips back, stay low — keeps the knees tracking over the toes on lunges and landings.','lateral band walk resistance band exercise')),
   // ── Tennis & power ───────────────────────────────────────
   NW(E('split-step','t','Split Step Reactive Jump','3','6',['Calves','Quads'],['Glutes','Core'],'Small hop, land softly on the balls of the feet in an athletic stance, then react to a cue (partner point or call) with a first step.','split step plyometric reactive jump tennis')),
   E('med-ball-oh','t','Medicine Ball Overhead Slam','3','6',['Shoulders','Lats'],['Core','Triceps'],'Drive from the legs, reach full extension overhead, slam hard — full kinetic-chain serve power. Log the ball weight.','medicine ball overhead slam exercise gym'),
   // ── Strength ─────────────────────────────────────────────
-  E('deadlift','s','Conventional Deadlift','3','4–6',['Hamstrings','Glutes','Erectors'],['Quads','Traps','Core'],'Brace hard, push the floor away — build tension before the bar leaves the ground. Trained every week now.','conventional deadlift tutorial proper form'),
-  E('bulg-split','s','Bulgarian Split Squat','3','8–10/leg',['Quads','Glutes'],['Hamstrings','Adductors'],'Rear foot elevated, slight forward lean — single-leg strength and balance for court lunges.','bulgarian split squat form tutorial'),
+  E('deadlift','s','Conventional Deadlift','3','4–6',['Hamstrings','Glutes','Erectors'],['Quads','Traps','Core'],'Brace hard, push the floor away — build tension before the bar leaves the ground.','conventional deadlift tutorial proper form'),
   E('bar-ohp','s','Barbell Overhead Press','3','5–8',['Front Delt','Side Delt'],['Triceps','Core','Traps'],'Superset with pull-ups. Brace hard, press straight up and lock out. If overhead pressing irritates the shoulder, swap to a landmine press.','barbell overhead press proper form tutorial'),
   E('pulldown','s','Pull-Up / Lat Pulldown','3','6–10',['Lats','Rhomboids'],['Biceps','Rear Delt'],'Superset with the press. Full stretch at the top, pull the elbows down to the hips.','lat pulldown pull up proper form tutorial'),
-  E('calf-d6','s','Eccentric Single-Leg Calf Raise','3','10–12 (3 sec down)',['Calves'],['Achilles'],'Up on two legs, down on one over 3 sec, straight knee. Pairs with the seated raise (bent knee) for complete Achilles loading. Hold a dumbbell once bodyweight is easy.','eccentric calf raise achilles exercise'),
-  E('face-pull','s','Face Pull (W finish)','2','12–15',['Rear Delt','Rotator Cuff'],['Upper Traps','Rhomboids'],'Cable at head height — pull to the face and finish with the elbows high and hands back in a W. Shoulder-health staple.','face pull cable exercise tutorial'),
-  E('woodchop-fh','s','Cable Woodchop (alternate direction weekly)','2','10/side',['Obliques','Core'],['Lats','Shoulders'],'Odd weeks high → low (forehand), even weeks low → high (backhand). The hips start the rotation, the arms follow.','cable woodchop exercise tennis'),
-  E('ab-wheel','s','Ab Wheel Rollout','2','8–10',['Core','Abs'],['Lats','Shoulders'],'Brace hard before rolling — only go as far as you can keep the lower back from sagging.','ab wheel rollout proper form'),
-  // ── Optional add-ons ─────────────────────────────────────
-  NW(E('copenhagen','o','Copenhagen Adductor Plank','2','20–30 sec/side',['Adductors'],['Obliques','Core'],'Side plank with the top leg on a bench, bottom leg free. Start with the knee on the bench (short lever), progress to the foot. Proven to reduce groin injuries — key for lateral court movement.','copenhagen adductor plank progression')),
-  E('wrist-ecc','o','Wrist Extensor Eccentric (FlexBar / dumbbell)','2','15',['Forearm Extensors'],['Wrist','Forearm Flexors'],'FlexBar "Tyler twist", or: palm down, lift a light dumbbell with the other hand and lower it over 3–4 sec with the working wrist. The evidence-based exercise for tennis elbow.','flexbar tyler twist tennis elbow eccentric exercise'),
-  E('inc-curl','o','Incline Dumbbell Curl','2','10–15',['Biceps'],['Brachialis'],'45–60° incline, arms hang straight — trains the biceps at full stretch.','incline dumbbell curl form'),
-  E('dips','o','Dips (weighted or bodyweight)','2','8–12',['Chest','Triceps'],['Front Delt'],'Slight forward lean, elbows to 90°. Skip if the front of the shoulder gets irritated.','weighted dips chest tricep form tutorial'),
+  E('calf-d6','s','Eccentric Single-Leg Calf Raise','3','10–12 (3 sec down)',['Calves'],['Achilles'],'Superset with face pulls. Up on two legs, down on one over 3 sec, straight knee — complements the seated raise for complete Achilles loading.','eccentric calf raise achilles exercise'),
+  E('face-pull','s','Face Pull (W finish)','2','12–15',['Rear Delt','Rotator Cuff'],['Upper Traps','Rhomboids'],'Superset with calf raises. Cable at head height — pull to the face and finish with the elbows high and hands back in a W.','face pull cable exercise tutorial'),
   // ── Mobility ─────────────────────────────────────────────
   E('thor-rot','x','Thoracic Rotation (book opener)','1','10/side',['Upper Back'],['Chest','Shoulders'],'Lie on your side with knees stacked, rotate the upper back open — full backswing range.','thoracic spine rotation book opener stretch'),
   E('pigeon','x','Pigeon Pose','1','60 sec/side',['Glutes','Hip Rotators'],['Hip Flexors'],'Front shin across the body — breathe into the glute. Keeps the hip rotation range needed for groundstrokes.','pigeon pose hip stretch tutorial'),
+ ]},
+ {id:'sc',num:'C',name:'Single-Leg & Core',icon:'⚡',
+  desc:'Single-leg strength · Hamstrings · Anti-rotation core · Groin & elbow health · ~60 min',exercises:[
+  // ── Knee prehab / warm-up ────────────────────────────────
+  NW(E('span-squat-c','k','Spanish Squat (band)','3','30–45 sec',['Patellar Tendon','Quads'],['Glutes'],'Same as Session A — frequent isometric loading is what keeps the patellar tendon robust.','spanish squat band exercise form')),
+  NW(E('rev-nordic-c','k','Reverse Nordic Curl','2','6–8',['Quads'],['Patellar Tendon','Hip Flexors'],'Same as Session B. Straight line from knees to head, lean back slowly, return under control.','reverse nordic curl exercise form')),
+  // ── Tennis & power ───────────────────────────────────────
+  NW(E('lat-bound-c','t','Single-Leg Lateral Bound','3','5/side',['Glute Med','Quads'],['Calves','Core'],'Second weekly dose of the key court-movement drill. Stick every landing for 2 sec.','single leg lateral bound plyometric exercise')),
+  E('med-rot-c','t','Medicine Ball Rotational Wall Throw','3','6/side',['Obliques','Core'],['Glutes','Shoulders'],'Second weekly dose of rotational power — groundstroke speed comes from here. Hips lead, arms follow.','medicine ball rotational throw wall gym'),
+  // ── Strength ─────────────────────────────────────────────
+  E('bulg-split','s','Bulgarian Split Squat','3','8–10/leg',['Quads','Glutes'],['Hamstrings','Adductors'],'Rear foot elevated, slight forward lean — single-leg strength for court lunges. Do the balance drill in the rest periods.','bulgarian split squat form tutorial'),
+  NW(E('sl-balance','s','Single-Leg Balance','2','30 sec/side',['Ankle Stabilisers','Calves'],['Glute Med','Core'],'Do it in the split-squat rest periods. Progress: eyes closed → soft pad → catch and throw a ball. The best-supported way to prevent ankle sprains.','single leg balance ankle proprioception exercise')),
+  E('nordic-ham','s','Nordic Hamstring Curl','3','4–6',['Hamstrings'],['Glutes','Calves'],'Feet anchored (partner, pad under a loaded barbell, or machine). Lower as slowly as you can, catch with your hands, push back up. The strongest evidence of any exercise for preventing hamstring strains — use a band for assistance at first.','nordic hamstring curl proper form progression'),
+  E('pallof','s','Pallof Press','2','10–12/side',['Core','Obliques'],['Shoulders'],'Superset with the Copenhagen plank. Cable at chest height — press out and hold 2 sec, resisting rotation completely.','pallof press anti rotation core'),
+  NW(E('copenhagen','s','Copenhagen Adductor Plank','2','20–30 sec/side',['Adductors'],['Obliques','Core'],'Superset with the Pallof press. Top leg on a bench, bottom leg free — start with the knee on the bench, progress to the foot. Proven to reduce groin injuries.','copenhagen adductor plank progression')),
+  E('ab-wheel','s','Ab Wheel Rollout','2','8–10',['Core','Abs'],['Lats','Shoulders'],'Superset with the wrist eccentric. Brace hard — only roll as far as you can keep the lower back from sagging.','ab wheel rollout proper form'),
+  E('wrist-ecc','s','Wrist Extensor Eccentric (FlexBar / dumbbell)','2','15',['Forearm Extensors'],['Wrist','Forearm Flexors'],'Superset with the ab wheel. FlexBar "Tyler twist", or: palm down, lift a light dumbbell with the other hand and lower it over 3–4 sec. The evidence-based exercise for tennis elbow.','flexbar tyler twist tennis elbow eccentric exercise'),
+  // ── Mobility ─────────────────────────────────────────────
+  E('worlds-gr','x','World\'s Greatest Stretch','1','5/side',['Hip Flexors','Upper Back'],['Hamstrings','Adductors'],'Lunge, hand inside the front foot, rotate the same-side arm to the ceiling, then straighten the front leg. Hips, thoracic spine and hamstrings in one flow.','worlds greatest stretch tutorial'),
+  E('calf-str','x','Wall Calf Stretch (straight + bent knee)','1','30 sec each/side',['Calves','Soleus'],['Achilles'],'Straight back knee for the gastrocnemius, then bend it slightly for the soleus. Keep the heel down.','wall calf stretch straight bent knee'),
  ]},
 ];
 
@@ -527,6 +534,8 @@ const RETIRED=[
   ['wall-sit-d5','k','Single-Leg Wall Sit (Day 5)'],['plank','s','Plank / RKC Plank'],['hang-raise','s','Hanging Leg Raise'],
   ['dead-bug','s','Dead Bug'],['tke-d6','k','Terminal Knee Extension (Day 6)'],['monster-walk','k','Monster Walk'],
   ['db-sh-d6','s','Dumbbell Shoulder Press'],['pullup-d6','s','Pull-Up / Lat Pulldown (Day 6)'],
+  ['hip-thrust','s','Hip Thrust'],['lat-raise','s','Lateral Raise'],['inc-curl','s','Incline Dumbbell Curl'],
+  ['dips','s','Dips'],['woodchop-fh','s','Cable Woodchop'],
 ].map(([id,type,name])=>({id,type,name,retired:true}));
 // Built-in tutorial videos (YouTube ids, all checked via oEmbed). A video the user
 // sets on a card overrides these; defaults are never written to storage or Firebase.
@@ -543,6 +552,8 @@ const DEFAULT_VIDS={
   'calf-d6':'1E79pymJngo','face-pull':'eTCBSFlCJ_s','woodchop-fh':'SEljAHXw01E',
   'ab-wheel':'ikkOq5mHaho','inc-curl':'1gCfaEWk_Ds','dips':'yN6Q1UI_xkE',
   'thor-rot':'rDviWORCWEw','pigeon':'46phRH_09yM',
+  'worlds-gr':'-CiWQ2IvY34','calf-str':'iIQx2Cx2NoQ',
+  'span-squat-c':'mik90mAS6fU','rev-nordic-c':'PvJDjcfZe1c','lat-bound-c':'7zi47B5sgsI','med-rot-c':'NP2e1Szrj28',
 };
 // Custom exercises were assigned to the old Days 1–6
 const OLD_DAY_MAP={d1:'sa',d3:'sa',d5:'sa',d2:'sb',d4:'sb',d6:'sb'};
@@ -793,7 +804,7 @@ function renderDay(day){
   </div>`:'';
   pg.innerHTML=`
     <div class="cycle-banner ${cycleDone(c)?'on':''}" id="cb-${day.id}">${cycleDone(c)?`<h3>🎉 Cycle Complete!</h3>
-      <p>Both sessions done — great work! A new week starts automatically tomorrow.</p>
+      <p>All sessions done — great work! A new week starts automatically tomorrow.</p>
       <button onclick="resetCycle(false)">Start New Week Now</button>`:''}</div>
     <div class="day-hdr">
       <div class="day-icon">${day.icon}</div>
@@ -874,7 +885,7 @@ function renderTabs(){
   document.getElementById('tab-bar').innerHTML=dayTabs+'<div class="tab-div"></div>'+utilTabs;
   // Subtitle: next-up indicator
   const nextDay=DAYS.find(d=>!c[d.id]);
-  const sub=doneCount===0?'A/B split · 2× per week':
+  const sub=doneCount===0?'A/B/C · 3× per week':
     nextDay?`${doneCount}/${DAYS.length} this week · Next: Session ${nextDay.num} — ${nextDay.name}`:'🎉 Cycle complete!';
   document.getElementById('cycle-sub').textContent=sub;
 }
@@ -986,7 +997,7 @@ function resetWeights(){
   DAYS.forEach(d=>renderDay(d)); renderProgress(); toast('Weights reset');
 }
 function resetCycle(ask=true){
-  if(ask&&!confirm('Start a new cycle? Both sessions will be marked as not done.'))return;
+  if(ask&&!confirm('Start a new cycle? All sessions will be marked as not done.'))return;
   localStorage.removeItem('completions'); fbWrite('completions',null);
   DAYS.forEach(d=>renderDay(d)); switchTab('sa'); toast('New week started!');
 }
