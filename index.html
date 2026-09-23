@@ -314,7 +314,7 @@ body{background:var(--page);color:var(--t1);font-family:"Google Sans",Roboto,-ap
       <div class="dots"><div class="dot d1"></div><div class="dot d2"></div><div class="dot d3"></div><div class="dot d4"></div></div>
       <span class="logo-txt">Tomas Gym Program</span>
     </div>
-    <span class="hdr-sub" id="cycle-sub">A/B/C · 3× per week</span>
+    <span class="hdr-sub" id="cycle-sub">A → B → C rotation</span>
     <div id="auth-btn-wrap"></div>
   </div>
   <div class="tabs" id="tab-bar"></div>
@@ -416,11 +416,11 @@ try{ if(localStorage.getItem('auth_ok')) document.getElementById('login-gate').s
 <!-- GUIDE -->
 <div id="pg-guide" class="page">
   <div class="g-card"><div class="g-head">Weekly structure</div><div class="g-rules">
-    <div class="rule-item"><div class="rdot"></div>Three full-body sessions per week — A, B, C — with a rest day between, e.g. Mon A · Wed B · Fri C. About 55–60 min each, including a few minutes of general warm-up (bike, skipping).</div>
-    <div class="rule-item"><div class="rdot"></div>Every session has a lower-body lift, an upper-body push and an upper-body pull, so each muscle is trained 2–3× a week. The key knee and tennis drills also come 2× per week.</div>
+    <div class="rule-item"><div class="rdot"></div>Three full-body sessions — A, B, C — that <b>rotate continuously</b>: always do the next one, whether you train 2× or 3× that week. Leave a rest day between, e.g. Mon · Wed · Fri. About 55–60 min each, including a few minutes of general warm-up (bike, skipping).</div>
+    <div class="rule-item"><div class="rdot"></div>Every session has a lower-body lift, an upper-body push and an upper-body pull, so each major muscle is trained in 2–3 of the 3 sessions, and the key knee and tennis drills in 2 of them.</div>
     <div class="rule-item"><div class="rdot"></div>Work through the numbered blocks in order. Inside a block alternate the exercises — 2A → 2B → rest → repeat — until all sets are done.</div>
     <div class="rule-item"><div class="rdot"></div>Contrast pairs (heavy lift → 🟢 power drill): rest 60–90 s after the lift, then jump or throw with maximum speed. Stop the set as soon as the reps slow down — these are for speed, not fatigue.</div>
-    <div class="rule-item"><div class="rdot"></div>Once all sessions are done the week resets automatically the next day. To add a tutorial video, tap "+ Add Tutorial Video" on any card.</div>
+    <div class="rule-item"><div class="rdot"></div>After Session C the round resets the next day and A comes up again — nothing is ever skipped. To add a tutorial video, tap "+ Add Tutorial Video" on any card.</div>
   </div></div>
   <div class="g-card"><div class="g-head">Effort & rest</div><div class="g-rules">
     <div class="rule-item"><div class="rdot"></div>Stop 1–3 reps short of failure on most sets — go to failure only occasionally, and never on squats or deadlifts.</div>
@@ -441,7 +441,7 @@ try{ if(localStorage.getItem('auth_ok')) document.getElementById('login-gate').s
     <div class="rule-item"><div class="rdot"></div><b>Off-season</b> (current default): 3–4 sets per exercise, push progression.</div>
     <div class="rule-item"><div class="rdot"></div><b>In-season</b>: drop to 2 sets per exercise but keep the weights — this maintains strength with less fatigue.</div>
     <div class="rule-item"><div class="rdot"></div>No heavy lower-body work (squat, deadlift, Nordics, split squats) within 48 h before a match.</div>
-    <div class="rule-item"><div class="rdot"></div>Busy match weeks: drop to 2 sessions (A + B), or 1 during tournaments, at reduced sets. No scheduled deloads — take an easy week only when run down or carrying a niggle.</div>
+    <div class="rule-item"><div class="rdot"></div>Busy match weeks: train 1–2× and simply continue the rotation, at reduced sets. No scheduled deloads — take an easy week only when run down or carrying a niggle.</div>
   </div></div>
   <div class="g-card"><div class="g-head">Nutrition & recovery</div>
     <div class="nutr-grid">
@@ -459,7 +459,7 @@ try{ if(localStorage.getItem('auth_ok')) document.getElementById('login-gate').s
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION='2026.09.23h';  // bump on every release — shown at the bottom of Settings
+const APP_VERSION='2026.09.23i';  // bump on every release — shown at the bottom of Settings
 /* ═══ DATA ═══════════════════════════════════════════════════
    type: k=prehab  t=tennis & power  s=strength  o=optional add-on  x=stretch
    mp=primary muscles  ms=secondary muscles
@@ -830,8 +830,8 @@ function renderDay(day){
   </div>`:'';
   pg.innerHTML=`
     <div class="cycle-banner ${cycleDone(c)?'on':''}" id="cb-${day.id}">${cycleDone(c)?`<h3>🎉 Cycle Complete!</h3>
-      <p>All sessions done — great work! A new week starts automatically tomorrow.</p>
-      <button onclick="resetCycle(false)">Start New Week Now</button>`:''}</div>
+      <p>Round complete — great work! Session A comes up again tomorrow.</p>
+      <button onclick="resetCycle(false)">Start Next Round Now</button>`:''}</div>
     <div class="day-hdr">
       <div class="day-icon">${day.icon}</div>
       <div class="day-info">
@@ -911,8 +911,8 @@ function renderTabs(){
   document.getElementById('tab-bar').innerHTML=dayTabs+'<div class="tab-div"></div>'+utilTabs;
   // Subtitle: next-up indicator
   const nextDay=DAYS.find(d=>!c[d.id]);
-  const sub=doneCount===0?'A/B/C · 3× per week':
-    nextDay?`${doneCount}/${DAYS.length} this week · Next: Session ${nextDay.num} — ${nextDay.name}`:'🎉 Cycle complete!';
+  const sub=doneCount===0?'A → B → C rotation':
+    nextDay?`${doneCount}/${DAYS.length} this round · Next: Session ${nextDay.num} — ${nextDay.name}`:'🎉 Cycle complete!';
   document.getElementById('cycle-sub').textContent=sub;
 }
 function switchTab(id){
@@ -933,7 +933,7 @@ function renderProgress(){
   const c=cdb();
   document.getElementById('prog-stats').innerHTML=`
     <div class="stat-c"><div class="stat-n c1">${logged.length}</div><div class="stat-l">Exercises logged</div></div>
-    <div class="stat-c"><div class="stat-n c2">${Object.keys(c).length}/${DAYS.length}</div><div class="stat-l">Sessions this week</div></div>
+    <div class="stat-c"><div class="stat-n c2">${Object.keys(c).length}/${DAYS.length}</div><div class="stat-l">Sessions this round</div></div>
     <div class="stat-c"><div class="stat-n c3">${Math.round(logged.filter(e=>!e.retired).length/all.filter(e=>!e.retired).length*100)}%</div><div class="stat-l">Tracked</div></div>
     <div class="stat-c"><div class="stat-n c4">${logged.filter(e=>{const h=d[e.id].history||[];return h.length>1&&h.at(-1).w>h[0].w}).length}</div><div class="stat-l">Progressing</div></div>`;
   if(!logged.length){
@@ -1023,9 +1023,9 @@ function resetWeights(){
   DAYS.forEach(d=>renderDay(d)); renderProgress(); toast('Weights reset');
 }
 function resetCycle(ask=true){
-  if(ask&&!confirm('Start a new cycle? All sessions will be marked as not done.'))return;
+  if(ask&&!confirm('Start a new round? All sessions will be marked as not done.'))return;
   localStorage.removeItem('completions'); fbWrite('completions',null);
-  DAYS.forEach(d=>renderDay(d)); switchTab('sa'); toast('New week started!');
+  DAYS.forEach(d=>renderDay(d)); switchTab('sa'); toast('New round started!');
 }
 
 /* ═══ MUSCLES PAGE ═══════════════════════════════════════════ */
