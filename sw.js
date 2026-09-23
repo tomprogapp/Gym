@@ -1,4 +1,4 @@
-const C='gym-v3';
+const C='gym-v4';
 self.addEventListener('install',e=>{
   self.skipWaiting();
   // Pre-cache is best-effort: a failure here must not block install (fetch fills the cache anyway)
@@ -17,7 +17,8 @@ self.addEventListener('fetch',e=>{
   const isSdk=url.hostname==='www.gstatic.com'&&url.pathname.startsWith('/firebasejs/');
   if(!isApp&&!isSdk) return;
   e.respondWith(
-    fetch(req).then(res=>{
+    // no-cache: revalidate with the server so a new release shows up on the next open
+    fetch(req,isApp?{cache:'no-cache'}:undefined).then(res=>{
       if(res.ok||res.type==='opaque'){ const copy=res.clone(); caches.open(C).then(c=>c.put(req,copy)); }
       return res;
     }).catch(()=>caches.match(req,{ignoreSearch:true}).then(r=>r||(req.mode==='navigate'&&caches.match('/Gym/'))||Response.error()))

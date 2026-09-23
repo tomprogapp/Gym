@@ -412,6 +412,7 @@ try{ if(localStorage.getItem('auth_ok')) document.getElementById('login-gate').s
     <h3>Custom Exercises <span style="font-size:12px;font-weight:400;color:var(--t3)" id="custom-count"></span></h3>
     <div class="cust-list" id="cust-list"></div>
   </div>
+  <div id="app-version" style="text-align:center;font-size:11px;color:var(--t3);margin-top:8px"></div>
 </div>
 
 <!-- GUIDE -->
@@ -459,6 +460,7 @@ try{ if(localStorage.getItem('auth_ok')) document.getElementById('login-gate').s
    type: k=knee  s=strength  t=tennis (gym only)  x=stretch
    mp=primary muscles  ms=secondary muscles
 ═══════════════════════════════════════════════════════════════ */
+const APP_VERSION='2026.09.23b';  // bump on every release — shown at the bottom of Settings
 const E=(id,type,name,sets,reps,mp,ms,tip,yt)=>({id,type,name,sets,reps,mp,ms,tip,yt});
 
 const DAYS=[
@@ -820,7 +822,9 @@ function renderDay(day){
     ${existingSecs.map(({type,count})=>`<button class="sec-jump" onclick="document.getElementById('sec-${type}-${day.id}').scrollIntoView({behavior:'smooth',block:'start'})">${TYPE_MAP[type].title} <span style="opacity:.55">${count}</span></button>`).join('')}
   </div>`:'';
   pg.innerHTML=`
-    <div class="cycle-banner" id="cb-${day.id}"></div>
+    <div class="cycle-banner ${cycleDone(c)?'on':''}" id="cb-${day.id}">${cycleDone(c)?`<h3>🎉 Cycle Complete!</h3>
+      <p>All 6 days done — great work! A new cycle starts automatically tomorrow.</p>
+      <button onclick="resetCycle(false)">Start New Cycle Now</button>`:''}</div>
     <div class="day-hdr">
       <div class="day-icon">${day.icon}</div>
       <div class="day-info">
@@ -841,20 +845,22 @@ function markDayDone(dayId){
   const c=cdb(); c[dayId]=new Date().toISOString().slice(0,10);
   localStorage.setItem('completions',JSON.stringify(c));
   syncCompletions();
-  renderDay(DAYS.find(d=>d.id===dayId));
+  if(cycleDone(c)) DAYS.forEach(d=>renderDay(d));
+  else renderDay(DAYS.find(d=>d.id===dayId));
   renderTabs();
-  if(Object.keys(c).length===6){
-    document.querySelectorAll('.cycle-banner').forEach(b=>{
-      b.className='cycle-banner on';
-      b.innerHTML='<h3>🎉 Cycle Complete!</h3><p>All 6 days done. Starting a new cycle — great work!</p><button onclick="resetCycle(false)">Start New Cycle</button>';
-    });
-  }
+}
+const cycleDone=(c=cdb())=>DAYS.every(d=>c[d.id]);
+// All 6 days done and the last one was finished before today → start the next cycle
+function maybeAutoResetCycle(){
+  const c=cdb(); if(!cycleDone(c)) return;
+  const last=Object.values(c).sort().at(-1), today=new Date().toISOString().slice(0,10);
+  if(last<today) resetCycle(false);
 }
 function unmarkDay(dayId){
   const c=cdb(); delete c[dayId];
   localStorage.setItem('completions',JSON.stringify(c));
   syncCompletions();
-  renderDay(DAYS.find(d=>d.id===dayId));
+  DAYS.forEach(d=>renderDay(d));  // all days, so the cycle-complete banner clears too
   renderTabs();
   toast('Day marked as not done');
 }
@@ -1013,9 +1019,7 @@ function resetWeights(){
 function resetCycle(ask=true){
   if(ask&&!confirm('Start a new cycle? All 6 days will be marked as not done.'))return;
   localStorage.removeItem('completions'); fbWrite('completions',null);
-  document.querySelectorAll('.cycle-banner').forEach(b=>{b.className='cycle-banner';b.innerHTML=''});
-  document.querySelectorAll('[id^="day-content-"]').forEach(c=>c.classList.remove('greyed'));
-  DAYS.forEach(d=>renderDay(d)); renderTabs(); toast('New cycle started!');
+  DAYS.forEach(d=>renderDay(d)); switchTab('d1'); toast('New cycle started!');
 }
 
 /* ═══ MUSCLES PAGE ═══════════════════════════════════════════ */
@@ -1401,6 +1405,7 @@ function attachFirebaseListener(){
       const cust=Array.isArray(d2.custom)?d2.custom:Object.values(d2.custom||{});
       localStorage.setItem('custom_ex',JSON.stringify(cust));
       if(d2.videos) Object.keys(d2.videos).forEach(k=>localStorage.setItem('yt_vid_'+k,d2.videos[k]));
+      maybeAutoResetCycle();
       DAYS.forEach(day=>renderDay(day));
       renderTabs();
       if(currentTab==='prog') renderProgress();
@@ -1471,8 +1476,10 @@ const _builtInCfg={
 const _savedCfg=loadFirebaseConfig()||_builtInCfg;
 initFirebase(_savedCfg);
 
+maybeAutoResetCycle();
 DAYS.forEach(d=>renderDay(d));
 renderTabs();
+document.getElementById('app-version').textContent='Version '+APP_VERSION;
 // Restore last active tab (default d1 already has .on from HTML)
 if(currentTab!=='d1') switchTab(currentTab);
 
