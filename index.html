@@ -393,7 +393,7 @@ try{ if(localStorage.getItem('auth_ok')) document.getElementById('login-gate').s
       <div class="ff"><label class="fl">Name *</label><input class="fi" id="f-name" placeholder="e.g. Box Jump"></div>
       <div class="ff"><label class="fl">Session *</label>
         <select class="fs" id="f-day">
-          <option value="sa">Session A – Squat & Push</option><option value="sb">Session B – Hinge & Pull</option><option value="sc">Session C – Single-Leg & Core</option>
+          <option value="sa">Session A – Squat & Push</option><option value="sb">Session B – Hinge & Pull</option><option value="sc">Session C – Single-Leg & Upper</option>
         </select></div>
       <div class="ff"><label class="fl">Type *</label>
         <select class="fs" id="f-type"><option value="k">🔵 Knee Prehab</option><option value="t">🟢 Tennis & Power</option><option value="s">🔴 Strength</option><option value="o">➕ Optional</option><option value="x">🟡 Mobility</option></select></div>
@@ -416,8 +416,8 @@ try{ if(localStorage.getItem('auth_ok')) document.getElementById('login-gate').s
 <!-- GUIDE -->
 <div id="pg-guide" class="page">
   <div class="g-card"><div class="g-head">Weekly structure</div><div class="g-rules">
-    <div class="rule-item"><div class="rdot"></div>Three full-body sessions per week — A, B, C — with a rest day between, e.g. Mon A · Wed B · Fri C. About 45–50 min each, plus a few minutes of general warm-up (bike, skipping).</div>
-    <div class="rule-item"><div class="rdot"></div>Every major muscle is trained about twice a week, every heavy lift once a week, and the key knee and tennis drills 2× per week.</div>
+    <div class="rule-item"><div class="rdot"></div>Three full-body sessions per week — A, B, C — with a rest day between, e.g. Mon A · Wed B · Fri C. About 55–60 min each, including a few minutes of general warm-up (bike, skipping).</div>
+    <div class="rule-item"><div class="rdot"></div>Every session has a lower-body lift, an upper-body push and an upper-body pull, so each muscle is trained 2–3× a week. The key knee and tennis drills also come 2× per week.</div>
     <div class="rule-item"><div class="rdot"></div>Work through the numbered blocks in order. Inside a block alternate the exercises — 2A → 2B → rest → repeat — until all sets are done.</div>
     <div class="rule-item"><div class="rdot"></div>Contrast pairs (heavy lift → 🟢 power drill): rest 60–90 s after the lift, then jump or throw with maximum speed. Stop the set as soon as the reps slow down — these are for speed, not fatigue.</div>
     <div class="rule-item"><div class="rdot"></div>Once all sessions are done the week resets automatically the next day. To add a tutorial video, tap "+ Add Tutorial Video" on any card.</div>
@@ -459,7 +459,7 @@ try{ if(localStorage.getItem('auth_ok')) document.getElementById('login-gate').s
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION='2026.09.23g';  // bump on every release — shown at the bottom of Settings
+const APP_VERSION='2026.09.23h';  // bump on every release — shown at the bottom of Settings
 /* ═══ DATA ═══════════════════════════════════════════════════
    type: k=prehab  t=tennis & power  s=strength  o=optional add-on  x=stretch
    mp=primary muscles  ms=secondary muscles
@@ -473,26 +473,29 @@ const BL=(title,note,...exs)=>{ const blk={title,note}; return exs.map(e=>(e.blk
 
 const DAYS=[
  {id:'sa',num:'A',name:'Squat & Push',icon:'🦵',
-  desc:'Quads · Chest · Back · Lateral & rotational power · Shoulder health · ~45–50 min',exercises:[
+  desc:'Quads · Chest · Back · Lateral & rotational power · Shoulder health · ~55–60 min',exercises:[
   ...BL('Warm-up & knee prep','Alternate with 2–3 lighter squat warm-up sets',
     NW(E('span-squat','k','Spanish Squat (band)','3','30–45 sec',['Patellar Tendon','Quads'],['Glutes'],'Heavy band around a fixed post behind the knees, sit back to a 60–90° knee bend and hold. Do one hold between each squat warm-up set. Keep it pain-free (≤3/10).','spanish squat band exercise form')),
-    NW(E('tke','k','Terminal Knee Extension','2','15/leg',['Quads'],['Knee'],'Band behind the knee — straighten fully and squeeze the quad hard at lockout. Primes the knee right before the working sets.','terminal knee extension band exercise form'))),
+    E('step-down','k','Peterson Step-Down','2','8–10/leg',['Quads'],['Glute Med','Knee'],'Stand on a low step on one leg, heel raised; slowly lower the other heel to the floor, knee travelling over the toes without caving in. Eccentric knee control — the step-down that prepares the knee for landings and lunges. Hold a dumbbell once easy.','peterson step down knee exercise')),
   ...BL('Squat + lateral power','Contrast: heavy squat → rest 60–90 s → bounds → rest 2 min',
     E('bar-squat','s','Barbell Back Squat','4','5–8',['Quads','Glutes'],['Hamstrings','Adductors','Core'],'Bar on upper traps, brace hard, break at hips and knees together — reach parallel or below. Add weight when all sets reach 8.','barbell back squat proper form tutorial'),
     NW(E('lat-bound','t','Single-Leg Lateral Bound','3','5/side',['Glute Med','Quads'],['Calves','Core'],'After squat sets 2–4. Explode sideways off one leg, stick the landing for 2 sec. Max intent — stop the set if the jumps get slow.','single leg lateral bound plyometric exercise'))),
   ...BL('Press + rotational power','Contrast: bench → rest 60 s → throws',
     E('flat-bench','s','Flat Dumbbell Bench Press','3','8–12',['Chest'],['Front Delt','Triceps'],'Full range — deep stretch at the bottom, press to nearly locked.','flat dumbbell bench press proper form'),
     E('med-rot','t','Medicine Ball Rotational Wall Throw','3','6/side',['Obliques','Core'],['Glutes','Shoulders'],'Side-on to the wall, load the back hip and throw with full rotation — hips lead, arms follow. Log the ball weight.','medicine ball rotational throw wall gym')),
-  ...BL('Pull + calves','Alternate, ~60 s between',
+  ...BL('Pull + lateral strength','Alternate, ~60 s between',
     E('db-row','s','Dumbbell / Barbell Row','3','8–12',['Lats','Rhomboids'],['Biceps','Rear Delt'],'Full stretch at the bottom, drive the elbow to the hip and squeeze the shoulder blade.','dumbbell bent over row proper form'),
-    E('seated-calf','s','Seated Calf Raise','3','12–15 (3 sec down)',['Calves','Soleus'],['Achilles'],'Knee bent 90° targets the soleus — the main Achilles tendon loader. Slow lowering, pause at the bottom.','seated calf raise soleus achilles tendon exercise')),
-  ...BL('Shoulder health & cool-down','External rotation, then stretch in the rests',
+    E('lat-lunge','s','Lateral Lunge (dumbbell / goblet)','3','8/side',['Quads','Adductors','Glutes'],['Hamstrings','Core'],'Step wide to the side, sit back into the hip with the other leg straight, push back to the start. Loaded sideways strength for wide balls — the plane tennis is played in.','dumbbell lateral lunge form')),
+  ...BL('Shoulder & calves','Alternate, ~45 s between',
     E('sh-ext-rot','s','Cable External Rotation at 90° (slow lowering)','2','12–15/side',['Rotator Cuff'],['Rear Delt'],'Elbow at shoulder height and bent 90° — rotate up briskly, lower over 3 sec. The serve position: eccentric external-rotation strength decelerates the arm after contact.','cable external rotation 90 degrees shoulder exercise'),
+    E('seated-calf','s','Seated Calf Raise','3','12–15 (3 sec down)',['Calves','Soleus'],['Achilles'],'Knee bent 90° targets the soleus — the main Achilles tendon loader. Slow lowering, pause at the bottom.','seated calf raise soleus achilles tendon exercise')),
+  ...BL('Cool-down','Push-up plus, then the stretches',
+    NW(E('pushup-plus','s','Push-Up Plus','2','10–12',['Serratus Anterior'],['Chest','Triceps'],'At the top of each push-up, push the floor further away so the shoulder blades spread around the ribs. Trains the serratus that rotates the shoulder blade during the serve.','push up plus serratus anterior')),
     E('hip-flex-str','x','Kneeling Hip Flexor Stretch','1','45 sec/side',['Hip Flexors'],['Quads'],'Tuck the pelvis under before leaning forward — feel it in the front of the hip, not the lower back.','kneeling hip flexor stretch tutorial'),
     E('cross-sh','x','Cross-Body Shoulder Stretch','1','40 sec/side',['Rear Delt','Rotator Cuff'],['Upper Back'],'Pull the arm across the chest, keep the shoulder blade down — stretches the back of the shoulder, which tightens in tennis players.','cross body shoulder stretch tutorial')),
  ]},
  {id:'sb',num:'B',name:'Hinge & Pull',icon:'🏋️',
-  desc:'Posterior chain · Shoulders · Lats · Reactive & serve power · ~45–50 min',exercises:[
+  desc:'Posterior chain · Shoulders · Lats · Reactive & serve power · ~55 min',exercises:[
   ...BL('Warm-up & knee prep','Alternate with 2–3 lighter deadlift warm-up sets',
     NW(E('rev-nordic','k','Reverse Nordic Curl','2','6–8',['Quads'],['Patellar Tendon','Hip Flexors'],'Kneel upright, lean back slowly keeping a straight line from knees to head, return under control. Shorten the range if the knee complains.','reverse nordic curl exercise form')),
     NW(E('lat-band','k','Lateral Band Walk','2','15 steps/way',['Glute Med'],['Quads','Adductors'],'Band above the knees or at the ankles, hips back, stay low — wakes up the glutes before pulling and keeps the knees tracking on landings.','lateral band walk resistance band exercise'))),
@@ -505,30 +508,34 @@ const DAYS=[
   ...BL('Pull + calves','Alternate, ~60 s between',
     E('pulldown','s','Pull-Up / Lat Pulldown','3','6–10',['Lats','Rhomboids'],['Biceps','Rear Delt'],'Full stretch at the top, pull the elbows down to the hips.','lat pulldown pull up proper form tutorial'),
     E('calf-d6','s','Eccentric Single-Leg Calf Raise','3','10–12 (3 sec down)',['Calves'],['Achilles'],'Up on two legs, down on one over 3 sec, straight knee — complements the seated raise for complete Achilles loading.','eccentric calf raise achilles exercise')),
-  ...BL('Shoulder health & cool-down','Face pulls, then stretch in the rests',
-    E('face-pull','s','Face Pull (W finish)','2','12–15',['Rear Delt','Rotator Cuff'],['Upper Traps','Rhomboids'],'Cable at head height — pull to the face and finish with the elbows high and hands back in a W.','face pull cable exercise tutorial'),
+  ...BL('Shoulders','Alternate, ~45 s between',
+    E('lat-raise','s','Lateral Raise','3','12–20',['Side Delt'],['Traps'],'Superset with face pulls. Slight forward lean, lead with the elbows. Add reps before adding weight — small jumps only.','lateral raise side deltoid tutorial'),
+    E('face-pull','s','Face Pull (W finish)','2','12–15',['Rear Delt','Rotator Cuff'],['Upper Traps','Rhomboids'],'Cable at head height — pull to the face and finish with the elbows high and hands back in a W.','face pull cable exercise tutorial')),
+  ...BL('Cool-down','Stretches',
     E('thor-rot','x','Thoracic Rotation (book opener)','1','10/side',['Upper Back'],['Chest','Shoulders'],'Lie on your side with knees stacked, rotate the upper back open — full backswing range.','thoracic spine rotation book opener stretch'),
     E('pigeon','x','Pigeon Pose','1','60 sec/side',['Glutes','Hip Rotators'],['Hip Flexors'],'Front shin across the body — breathe into the glute. Keeps the hip rotation range needed for groundstrokes.','pigeon pose hip stretch tutorial')),
  ]},
- {id:'sc',num:'C',name:'Single-Leg & Core',icon:'⚡',
-  desc:'Single-leg strength · Hamstrings · Anti-rotation core · Groin, ankle & elbow health · ~45–50 min',exercises:[
-  ...BL('Warm-up & knee prep','Alternate with a bodyweight split-squat set',
-    NW(E('span-squat-c','k','Spanish Squat (band)','3','30–45 sec',['Patellar Tendon','Quads'],['Glutes'],'Same as Session A — frequent isometric loading keeps the patellar tendon robust.','spanish squat band exercise form')),
-    NW(E('rev-nordic-c','k','Reverse Nordic Curl','2','6–8',['Quads'],['Patellar Tendon','Hip Flexors'],'Same as Session B. Straight line from knees to head, lean back slowly, return under control.','reverse nordic curl exercise form'))),
+ {id:'sc',num:'C',name:'Single-Leg & Upper',icon:'⚡',
+  desc:'Single-leg strength · Dips & chins · Hamstrings · Groin & elbow health · ~60 min',exercises:[
+  ...BL('Warm-up & knee prep','Landing drill first, then the isometric hold',
+    NW(E('drop-land','k','Single-Leg Drop Landing (forward & lateral)','2','4/leg each way',['Quads','Glute Med'],['Calves','Knee'],'Step off a low box, land on one leg and freeze for 2 sec — knee over toes, hips back, quiet landing. Alternate forward and sideways drops. Landing control is the core of proven knee-injury (ACL) prevention programs.','single leg drop landing acl prevention')),
+    NW(E('span-squat-c','k','Spanish Squat (band)','3','30–45 sec',['Patellar Tendon','Quads'],['Glutes'],'Same as Session A — frequent isometric loading keeps the patellar tendon robust.','spanish squat band exercise form'))),
   ...BL('Split squat + lateral power','Contrast: split squat (both legs) → rest 60–90 s → bounds',
     E('bulg-split','s','Bulgarian Split Squat','3','8–10/leg',['Quads','Glutes'],['Hamstrings','Adductors'],'Rear foot elevated, slight forward lean — single-leg strength for court lunges.','bulgarian split squat form tutorial'),
     NW(E('lat-bound-c','t','Single-Leg Lateral Bound','3','5/side',['Glute Med','Quads'],['Calves','Core'],'Second weekly dose of the key court-movement drill. Stick every landing for 2 sec; stop if the jumps get slow.','single leg lateral bound plyometric exercise'))),
+  ...BL('Dips + chin-ups','Alternate, ~60–90 s between',
+    E('dips','s','Dips (weighted or bodyweight)','3','6–10',['Chest','Triceps'],['Front Delt'],'Superset with chin-ups. Slight forward lean, lower until the upper arms are parallel to the floor, press to lockout. Add a belt once 10 is easy; skip if the front of the shoulder gets irritated.','weighted dips chest tricep form tutorial'),
+    E('chin-up','s','Chin-Up (underhand)','3','6–10',['Lats','Biceps'],['Rhomboids','Core'],'Superset with dips. Underhand, shoulder-width grip, full hang to chin over the bar — add weight with a belt once you get 10. Use a band or the pulldown if needed.','chin up proper form')),
   ...BL('Hamstrings + rotational power','Nordics → rest 60 s → throws',
     E('nordic-ham','s','Nordic Hamstring Curl','3','4–6',['Hamstrings'],['Glutes','Calves'],'Feet anchored (partner, pad under a loaded barbell, or machine). Lower as slowly as you can, catch with your hands, push back up. The strongest evidence of any exercise for preventing hamstring strains — use a band for assistance at first.','nordic hamstring curl proper form progression'),
     E('med-rot-c','t','Medicine Ball Rotational Wall Throw','3','6/side',['Obliques','Core'],['Glutes','Shoulders'],'Second weekly dose of rotational power — groundstroke speed comes from here. Hips lead, arms follow.','medicine ball rotational throw wall gym')),
   ...BL('Core + groin','Alternate, ~45 s between',
     E('pallof','s','Pallof Press','2','10–12/side',['Core','Obliques'],['Shoulders'],'Cable at chest height — press out and hold 2 sec, resisting rotation completely.','pallof press anti rotation core'),
     NW(E('copenhagen','s','Copenhagen Adductor Plank','2','20–30 sec/side',['Adductors'],['Obliques','Core'],'Top leg on a bench, bottom leg free — start with the knee on the bench, progress to the foot. Proven to reduce groin injuries.','copenhagen adductor plank progression'))),
-  ...BL('Core + elbow','Alternate, ~45 s between',
-    E('ab-wheel','s','Ab Wheel Rollout','2','8–10',['Core','Abs'],['Lats','Shoulders'],'Brace hard — only roll as far as you can keep the lower back from sagging.','ab wheel rollout proper form'),
+  ...BL('Single-leg hinge + elbow','Alternate, ~45 s between',
+    E('sl-rdl','s','Single-Leg Romanian Deadlift','2','8/leg',['Hamstrings','Glutes'],['Glute Med','Core'],'Dumbbell in the hand opposite the standing leg, soft knee, hinge until you feel the hamstring — hips square to the floor. Single-leg hip control and balance in one.','single leg romanian deadlift dumbbell'),
     E('wrist-ecc','s','Wrist Extensor Eccentric (FlexBar / dumbbell)','2','15',['Forearm Extensors'],['Wrist','Forearm Flexors'],'FlexBar "Tyler twist", or: palm down, lift a light dumbbell with the other hand and lower it over 3–4 sec. The evidence-based exercise for tennis elbow.','flexbar tyler twist tennis elbow eccentric exercise')),
-  ...BL('Balance & cool-down','Balance, then the stretches',
-    NW(E('sl-balance','s','Single-Leg Balance','2','30 sec/side',['Ankle Stabilisers','Calves'],['Glute Med','Core'],'Progress: eyes closed → soft pad → catch and throw a ball. The best-supported way to prevent ankle sprains.','single leg balance ankle proprioception exercise')),
+  ...BL('Cool-down','Stretches',
     E('worlds-gr','x','World\'s Greatest Stretch','1','5/side',['Hip Flexors','Upper Back'],['Hamstrings','Adductors'],'Lunge, hand inside the front foot, rotate the same-side arm to the ceiling, then straighten the front leg. Hips, thoracic spine and hamstrings in one flow.','worlds greatest stretch tutorial'),
     E('calf-str','x','Wall Calf Stretch (straight + bent knee)','1','30 sec each/side',['Calves','Soleus'],['Achilles'],'Straight back knee for the gastrocnemius, then bend it slightly for the soleus. Keep the heel down.','wall calf stretch straight bent knee')),
  ]},
@@ -544,8 +551,8 @@ const RETIRED=[
   ['wall-sit-d5','k','Single-Leg Wall Sit (Day 5)'],['plank','s','Plank / RKC Plank'],['hang-raise','s','Hanging Leg Raise'],
   ['dead-bug','s','Dead Bug'],['tke-d6','k','Terminal Knee Extension (Day 6)'],['monster-walk','k','Monster Walk'],
   ['db-sh-d6','s','Dumbbell Shoulder Press'],['pullup-d6','s','Pull-Up / Lat Pulldown (Day 6)'],
-  ['hip-thrust','s','Hip Thrust'],['lat-raise','s','Lateral Raise'],['inc-curl','s','Incline Dumbbell Curl'],
-  ['dips','s','Dips'],['woodchop-fh','s','Cable Woodchop'],
+  ['hip-thrust','s','Hip Thrust'],['inc-curl','s','Incline Dumbbell Curl'],['ab-wheel','s','Ab Wheel Rollout'],
+  ['woodchop-fh','s','Cable Woodchop'],
 ].map(([id,type,name])=>({id,type,name,retired:true}));
 // Built-in tutorial videos (YouTube ids, all checked via oEmbed). A video the user
 // sets on a card overrides these; defaults are never written to storage or Firebase.
@@ -562,7 +569,9 @@ const DEFAULT_VIDS={
   'calf-d6':'1E79pymJngo','face-pull':'eTCBSFlCJ_s','woodchop-fh':'SEljAHXw01E',
   'ab-wheel':'ikkOq5mHaho','inc-curl':'1gCfaEWk_Ds','dips':'yN6Q1UI_xkE',
   'thor-rot':'rDviWORCWEw','pigeon':'46phRH_09yM',
-  'worlds-gr':'-CiWQ2IvY34','calf-str':'iIQx2Cx2NoQ',
+  'worlds-gr':'-CiWQ2IvY34',
+  'step-down':'rvI7OxBQqS4','drop-land':'3sGe3UiwrVY','lat-lunge':'R8jArZG2J6Q','sl-rdl':'Zfr6wizR8rs',
+  'pushup-plus':'7ISH0zz9XcM','chin-up':'nILkwSyrE3Y','calf-str':'iIQx2Cx2NoQ',
   'span-squat-c':'mik90mAS6fU','rev-nordic-c':'PvJDjcfZe1c','lat-bound-c':'7zi47B5sgsI','med-rot-c':'NP2e1Szrj28',
 };
 // Custom exercises were assigned to the old Days 1–6
