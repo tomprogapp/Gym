@@ -205,7 +205,10 @@ body{background:var(--page);color:var(--t1);font-family:"Google Sans",Roboto,-ap
 .pr-tag{background:var(--yellow);color:#fff;border-radius:3px;padding:1px 6px;font-size:10px;font-weight:700;margin-left:4px}
 
 /* GREYSCALE */
-.day-content.greyed{filter:grayscale(.85) opacity(.55);pointer-events:none}
+.day-content.greyed{filter:grayscale(.7) opacity(.65);transition:filter .2s}
+.day-content.greyed:focus-within{filter:none}
+.undo-link{color:var(--blue);cursor:pointer;margin-left:4px}
+.undo-link:hover{text-decoration:underline}
 
 /* MUSCLES TAB */
 .mus-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
@@ -331,6 +334,10 @@ body{background:var(--page);color:var(--t1);font-family:"Google Sans",Roboto,-ap
   </button>
   <div id="gate-setup-hint" style="margin-top:20px;font-size:12px;color:rgba(255,255,255,.3)"></div>
 </div>
+<script>
+// Previously signed in on this device → skip the gate so the app opens instantly (and offline)
+try{ if(localStorage.getItem('auth_ok')) document.getElementById('login-gate').style.display='none'; }catch{}
+</script>
 
 <div id="pg-d1" class="page on"></div>
 <div id="pg-d2" class="page"></div>
@@ -592,7 +599,9 @@ const MG=m=>{
 /* ═══ STORAGE ════════════════════════════════════════════════ */
 const wdb    =()=>{ try{return JSON.parse(localStorage.getItem('gw3')||'{}')}catch{return{}} };
 const cdb    =()=>{ try{return JSON.parse(localStorage.getItem('completions')||'{}')}catch{return{}} };
-const custdb =()=>{ try{return JSON.parse(localStorage.getItem('custom_ex')||'[]')}catch{return[]} };
+// Firebase drops empty arrays, so restore mp/ms defaults on read
+const custdb =()=>{ try{return JSON.parse(localStorage.getItem('custom_ex')||'[]').map(e=>({...e,mp:e.mp||[],ms:e.ms||[]}))}catch{return[]} };
+const allEx  =()=>[...DAYS.flatMap(d=>d.exercises),...custdb()];
 const getVid =id=>localStorage.getItem('yt_vid_'+id);
 const setVid =(id,v)=>localStorage.setItem('yt_vid_'+id,v);
 const getImg =id=>localStorage.getItem('img_'+id);
@@ -818,7 +827,7 @@ function renderDay(day){
         <h2>Day ${day.num} — ${day.name}</h2>
         <p>${day.desc}</p>
         <div class="day-badges">${badgesHTML}</div>
-        ${done?`<div class="done-date">✓ Completed ${c[day.id]}</div>`:''}
+        ${done?`<div class="done-date">✓ Completed ${c[day.id]} · <span class="undo-link" data-did="${day.id}" onclick="unmarkDay(this.dataset.did)">Undo</span></div>`:''}
       </div>
       <button class="done-btn ${done?'completed':''}" id="dbtn-${day.id}"
         ${done?'':'data-did="'+day.id+'" onclick="markDayDone(this.dataset.did)"'}>${done?'✓ Completed':'Mark Day Complete'}</button>
@@ -837,9 +846,17 @@ function markDayDone(dayId){
   if(Object.keys(c).length===6){
     document.querySelectorAll('.cycle-banner').forEach(b=>{
       b.className='cycle-banner on';
-      b.innerHTML='<h3>🎉 Cycle Complete!</h3><p>All 6 days done. Starting a new cycle — great work!</p><button onclick="resetCycle()">Start New Cycle</button>';
+      b.innerHTML='<h3>🎉 Cycle Complete!</h3><p>All 6 days done. Starting a new cycle — great work!</p><button onclick="resetCycle(false)">Start New Cycle</button>';
     });
   }
+}
+function unmarkDay(dayId){
+  const c=cdb(); delete c[dayId];
+  localStorage.setItem('completions',JSON.stringify(c));
+  syncCompletions();
+  renderDay(DAYS.find(d=>d.id===dayId));
+  renderTabs();
+  toast('Day marked as not done');
 }
 
 /* ═══ WEIGHT SAVE ════════════════════════════════════════════ */
@@ -899,14 +916,14 @@ function switchTab(id){
 
 /* ═══ PROGRESS ═══════════════════════════════════════════════ */
 function renderProgress(){
-  const all=DAYS.flatMap(d=>d.exercises).filter(e=>e.type==='s'||e.type==='k');
+  const all=allEx().filter(e=>e.type==='s'||e.type==='k');
   const d=wdb(),logged=all.filter(e=>d[e.id]?.best);
   const c=cdb();
   document.getElementById('prog-stats').innerHTML=`
     <div class="stat-c"><div class="stat-n c1">${logged.length}</div><div class="stat-l">Exercises logged</div></div>
     <div class="stat-c"><div class="stat-n c2">${Object.keys(c).length}/6</div><div class="stat-l">Days complete</div></div>
     <div class="stat-c"><div class="stat-n c3">${Math.round(logged.length/all.length*100)}%</div><div class="stat-l">Tracked</div></div>
-    <div class="stat-c"><div class="stat-n c4">${logged.filter(e=>d[e.id].history?.length>1).length}</div><div class="stat-l">Progressing</div></div>`;
+    <div class="stat-c"><div class="stat-n c4">${logged.filter(e=>{const h=d[e.id].history||[];return h.length>1&&h.at(-1).w>h[0].w}).length}</div><div class="stat-l">Progressing</div></div>`;
   if(!logged.length){
     document.getElementById('prog-tbl').innerHTML='<tr><td style="padding:24px;color:var(--t3)">No weights saved yet.</td></tr>';return;
   }
@@ -958,13 +975,13 @@ function addCustom(){
     ms:document.getElementById('f-ms').value.split(',').map(s=>s.trim()).filter(Boolean),
     tip:document.getElementById('f-tip').value||'Focus on form and control.',
     yt:document.getElementById('f-yt').value||name+' exercise tutorial'};
-  const list=custdb(); list.push(ex); localStorage.setItem('custom_ex',JSON.stringify(list));
+  const list=custdb(); list.push(ex); localStorage.setItem('custom_ex',JSON.stringify(list)); syncCustom();
   ['f-name','f-sets','f-reps','f-mp','f-ms','f-yt','f-tip'].forEach(i=>document.getElementById(i).value='');
   renderCustomList(); DAYS.forEach(d=>renderDay(d)); renderTabs();
   toast(`"${name}" added`);
 }
 function deleteCustom(id){
-  localStorage.setItem('custom_ex',JSON.stringify(custdb().filter(e=>e.id!==id)));
+  localStorage.setItem('custom_ex',JSON.stringify(custdb().filter(e=>e.id!==id))); syncCustom();
   renderCustomList(); DAYS.forEach(d=>renderDay(d)); renderTabs(); toast('Removed');
 }
 function renderCustomList(){
@@ -979,18 +996,23 @@ function renderCustomList(){
 /* ═══ UTILS ══════════════════════════════════════════════════ */
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;clearTimeout(t._t);t.classList.add('show');t._t=setTimeout(()=>t.classList.remove('show'),2500)}
 function exportCSV(){
-  const all=DAYS.flatMap(d=>d.exercises),d=wdb();
+  const all=allEx(),d=wdb();
   let c='Exercise,Type,Best (kg),Sessions,Last\n';
   all.filter(e=>d[e.id]?.best).forEach(e=>{
     const r=d[e.id],last=r.history?.at(-1)?.w||'';
-    c+=`"${e.name}",${TYPE_MAP[e.type].label},${r.best},${(r.history||[]).length},${last}\n`;
+    c+=`"${e.name.replace(/"/g,'""')}",${TYPE_MAP[e.type].label},${r.best},${(r.history||[]).length},${last}\n`;
   });
   const a=Object.assign(document.createElement('a'),{href:URL.createObjectURL(new Blob([c],{type:'text/csv'})),download:'tomas_gym_progress.csv'});
   a.click(); toast('Exported ✓');
 }
-function resetWeights(){if(confirm('Reset all saved weights?')){localStorage.removeItem('gw3');location.reload()}}
-function resetCycle(){
-  localStorage.removeItem('completions');
+function resetWeights(){
+  if(!confirm('Reset all saved weights? This also clears them on your other devices.'))return;
+  localStorage.removeItem('gw3'); fbWrite('weights',null);
+  DAYS.forEach(d=>renderDay(d)); renderProgress(); toast('Weights reset');
+}
+function resetCycle(ask=true){
+  if(ask&&!confirm('Start a new cycle? All 6 days will be marked as not done.'))return;
+  localStorage.removeItem('completions'); fbWrite('completions',null);
   document.querySelectorAll('.cycle-banner').forEach(b=>{b.className='cycle-banner';b.innerHTML=''});
   document.querySelectorAll('[id^="day-content-"]').forEach(c=>c.classList.remove('greyed'));
   DAYS.forEach(d=>renderDay(d)); renderTabs(); toast('New cycle started!');
@@ -1268,8 +1290,9 @@ function showFirebaseSetup(){
   document.getElementById('firebase-setup-card').scrollIntoView({behavior:'smooth'});
 }
 
-function initFirebase(cfg){
-  if(typeof firebase==='undefined'){ setTimeout(()=>initFirebase(cfg),150); return; }
+function initFirebase(cfg,tries=0){
+  // SDK missing (e.g. offline with nothing cached) → give up after ~6s and run local-only
+  if(typeof firebase==='undefined'){ if(tries<40) setTimeout(()=>initFirebase(cfg,tries+1),150); return; }
   try{
     if(firebase.apps.length===0) firebase.initializeApp(cfg);
     _auth=firebase.auth();
@@ -1320,6 +1343,7 @@ function renderAuthBtn(user){
   const wrap=document.getElementById('auth-btn-wrap');
   if(user){
     if(user.email!==ALLOWED_EMAIL){
+      localStorage.removeItem('auth_ok');
       _auth.signOut();
       if(gate){ gate.style.display='flex'; }
       const hint=document.getElementById('gate-setup-hint');
@@ -1328,6 +1352,7 @@ function renderAuthBtn(user){
       return;
     }
     // Hide the login gate
+    localStorage.setItem('auth_ok','1');
     if(gate) gate.style.display='none';
     if(wrap) wrap.innerHTML=`<div class="auth-chip" onclick="signOut()" title="Signed in as ${user.email} — click to sign out">
       <img src="${user.photoURL||''}" onerror="this.style.display='none'">
@@ -1339,6 +1364,7 @@ function renderAuthBtn(user){
       <button class="btn-outline" onclick="signOut()">Sign out</button>`;
   } else {
     // Show the login gate
+    localStorage.removeItem('auth_ok');
     if(gate) gate.style.display='flex';
     if(wrap) wrap.innerHTML='';
   }
@@ -1347,40 +1373,69 @@ function renderAuthBtn(user){
 function attachFirebaseListener(){
   if(!_db||!_uid||_listening) return;
   _listening=true;
-  _db.ref('users/'+_uid).once('value', snap=>{
+  const ref=_db.ref('users/'+_uid);
+  ref.once('value', snap=>{
     const d=snap.val()||{};
-    // On first sign-in: push local data up to Firebase so nothing is lost
-    const localWeights=wdb(); const localCompletions=cdb();
-    const localVideos={};
-    DAYS.flatMap(day=>day.exercises).forEach(e=>{
-      const v=getVid(e.id); if(v) localVideos[e.id]=v;
-    });
-    // Merge: Firebase wins for keys it already has, local fills the gaps
-    const mergedWeights=Object.assign({},localWeights,d.weights||{});
-    const mergedCompletions=Object.assign({},localCompletions,d.completions||{});
-    const mergedVideos=Object.assign({},localVideos,d.videos||{});
-    // Save merged data to localStorage
-    localStorage.setItem('gw3',JSON.stringify(mergedWeights));
-    localStorage.setItem('completions',JSON.stringify(mergedCompletions));
-    Object.keys(mergedVideos).forEach(k=>localStorage.setItem('yt_vid_'+k,mergedVideos[k]));
-    // Push merged data back to Firebase
-    _db.ref('users/'+_uid).set({weights:mergedWeights,completions:mergedCompletions,videos:mergedVideos}).catch(()=>{});
-    // Now attach live listener for ongoing sync
-    _db.ref('users/'+_uid).on('value', snap2=>{
-      const d2=snap2.val(); if(!d2) return;
-      if(d2.weights) localStorage.setItem('gw3',JSON.stringify(d2.weights));
-      if(d2.completions) localStorage.setItem('completions',JSON.stringify(d2.completions));
+    // First sign-in on this device, or local changes that never reached the cloud
+    // (app closed while offline) → merge local into cloud. Otherwise the cloud is the
+    // source of truth, so resets and deletions made on other devices stick.
+    const firstMerge=localStorage.getItem('fb_merged')!==_uid;
+    if(firstMerge||localStorage.getItem('fb_dirty')){
+      const localVideos={};
+      allEx().forEach(e=>{ const v=getVid(e.id); if(v) localVideos[e.id]=v; });
+      const cloudCustom=Array.isArray(d.custom)?d.custom:Object.values(d.custom||{});
+      const merged={
+        weights:mergeWeights(d.weights||{},wdb()),
+        completions:{...(d.completions||{}),...cdb()},
+        videos:{...(d.videos||{}),...localVideos},
+        custom:[...cloudCustom,...custdb().filter(e=>!cloudCustom.some(c=>c.id===e.id))],
+      };
+      localStorage.setItem('fb_merged',_uid);
+      fbWrite('',merged);
+    }
+    // Live listener: mirror the cloud into localStorage and re-render
+    ref.on('value', snap2=>{
+      const d2=snap2.val()||{};
+      localStorage.setItem('gw3',JSON.stringify(d2.weights||{}));
+      localStorage.setItem('completions',JSON.stringify(d2.completions||{}));
+      const cust=Array.isArray(d2.custom)?d2.custom:Object.values(d2.custom||{});
+      localStorage.setItem('custom_ex',JSON.stringify(cust));
       if(d2.videos) Object.keys(d2.videos).forEach(k=>localStorage.setItem('yt_vid_'+k,d2.videos[k]));
       DAYS.forEach(day=>renderDay(day));
       renderTabs();
       if(currentTab==='prog') renderProgress();
+      if(currentTab==='admin') renderCustomList();
     });
   });
 }
 
-// Wrapped write helpers — write to localStorage AND Firebase if signed in
+// Per exercise: union of both histories (deduped), best = highest seen
+function mergeWeights(a,b){
+  const out={};
+  new Set([...Object.keys(a),...Object.keys(b)]).forEach(id=>{
+    const seen=new Set(),history=[];
+    [...(a[id]?.history||[]),...(b[id]?.history||[])].forEach(h=>{
+      const k=h.w+'|'+h.dt; if(!seen.has(k)){ seen.add(k); history.push(h); }
+    });
+    history.sort((x,y)=>x.dt<y.dt?-1:x.dt>y.dt?1:0);
+    out[id]={best:Math.max(a[id]?.best||0,b[id]?.best||0,...history.map(h=>h.w)),history};
+  });
+  return out;
+}
+
+// Write to Firebase if signed in. 'fb_dirty' stays set until every write is
+// confirmed by the server, so unsynced offline changes get merged on next launch.
+let _pendingWrites=0;
 function fbWrite(path,value){
-  if(_db&&_uid) _db.ref('users/'+_uid+'/'+path).set(value).catch(()=>{});
+  localStorage.setItem('fb_dirty','1');
+  if(!(_db&&_uid)) return;
+  _pendingWrites++;
+  _db.ref('users/'+_uid+(path?'/'+path:'')).set(value)
+    .then(()=>{ if(--_pendingWrites===0) localStorage.removeItem('fb_dirty'); })
+    .catch(()=>{ _pendingWrites--; });
+}
+function syncCustom(){
+  fbWrite('custom',custdb());
 }
 function syncWeights(){
   const d=wdb(); fbWrite('weights',d);
